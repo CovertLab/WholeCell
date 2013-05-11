@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<conditions
+	xmlns="http://covertlab.stanford.edu"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://covertlab.stanford.edu conditions.xsd">
+	<firstName><![CDATA[Jonathan]]></firstName>
+	<lastName><![CDATA[Karr]]></lastName>
+	<email><![CDATA[jkarr@stanford.edu]]></email>
+	<affiliation><![CDATA[Covert Lab, Department of Bioengineering, Stanford University]]></affiliation>
+	<userName><![CDATA[jkarr]]></userName>
+	<hostName><![CDATA[covertlab-jkarr.Stanford.EDU]]></hostName>
+	<ipAddress><![CDATA[171.65.92.146]]></ipAddress>
+	<revision><![CDATA[2125]]></revision>
+	<differencesFromRevision><![CDATA[]]></differencesFromRevision>
+	<condition>
+		<shortDescription>Test initialize from daughter</shortDescription>
+		<longDescription>Test initialize from daughter</longDescription>
+		<options>
+			<option name="seed" value="1"/>
+			<option name="lengthSec" value="100"/>
+		</options>
+	</condition>
+</conditions>

@@ -1,0 +1,134 @@
+#!/usr/bin/perl -w
+
+eval 'exec /usr/bin/perl -w -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
+
+# $Id: svnnotify 4638 2009-04-03 00:42:40Z david $
+
+use strict;
+use SVN::Notify;
+
+# Parse out the options.
+my $opts = SVN::Notify->get_options
+  or require Pod::Usage && Pod::Usage::pod2usage(2);
+
+# Handle version, help, man.
+if (delete $opts->{version}) {
+    print 'svnnotify ', SVN::Notify->VERSION, $/;
+    exit;
+}
+
+require Pod::Usage && Pod::Usage::pod2usage(
+    '-verbose'  => 99,
+    '-sections' => '(?i:(Usage|Options))',
+    '-exitval'  => 0,
+) if delete $opts->{help};
+
+require Pod::Usage && Pod::Usage::pod2usage(
+    '-verbose'  => 99,
+    '-sections' => '.+',
+    '-exitval'  => 0,
+) if delete $opts->{man};
+
+# What class are we using?
+my $class = 'SVN::Notify';
+$class .= '::' . delete $opts->{handler} if $opts->{handler};
+
+# Do it!
+my $notifier = $class->new(%$opts);
+$notifier->prepare;
+$notifier->execute;
+
+1;
+__END__
+
+=head1 Name
+
+svnnotify - Subversion activity notification
+
+=head1 Usage
+
+  svnnotify --repos-path "$1" --revision "$2" [options]
+
+=head1 Options
+
+  -p --repos-path PATH         Path to the Subversion repository. Required.
+  -r --revision REVISION       Commit revision number. Required.
+  -t --to ADDRESS              The notification destination email address.
+                               Required unless --to-regex-map.
+  -x --to-regex-map TO=REGEX   A mapping between a destination email address
+                               and a regular expression to match against the
+                               directories affected by the commit. Required
+                               unless --to or --to-email-map.
+     --to-email-map REGEX=TO   The inverse of --to-regex-map: Map a regular
+                               expresion to an email address. Required unless
+                               --to or --to-regex-map.
+  -f --from ADDRESS            Email address to use in the From header.
+  -D --user-domain DOMAIN      Domain name to append to the username to
+                               complete the email address in the From header.
+  -l --svnlook SVNLOOK         Location of the svnlook executable.
+  -s --sendmail SENDMAIL       Location of the sendmail executable.
+  -E --set-sender              Set the envelope sender to the from address.
+     --smtp ADDRESS            Address for an SMTP server.
+     --smtp-user USERNAME      Username for authenticating to a SMTP server.
+     --smtp-pass PASSWORD      Password for authenticating to a SMTP server.
+     --smtp-authtype AUTHTYPE  Type of SMTP authentication.
+  -c --encoding ENCODING       The character encoding for reading and writing
+                               data.
+     --svn-encoding ENCODING   The character encoding of the log message and
+                               the repository files.
+     --diff-encoding ENCODING  The character encoding of the repository files.
+  -g --language LANGUAGE       Value for the Content-Language header and $LANG
+                               environment variable.
+  -d --with-diff               Include the diff in the message.
+  -a --attach-diff             Attach the diff to the message.
+  -w --diff-switches SWITCHES  Switches to pass to C<svnlook diff>.
+  -R --reply-to ADDRESS        Address for use in the Reply-To header.
+     --add-header NAME=VALUE   Add an extra header to the email.
+  -P --subject-prefix PREFIX   String to prepend to the subject.
+  -C --subject-cx              Include the context of the commit in the
+                               subject.
+  -X --strip-cx-regex          Regex to remove part of the CX file name from
+                               the subject.
+  -O --no-first-line           Do not include the first line of the log
+                               message in the subject.
+  -i --max-sub-length LENGTH   Maximum size of the subject line.
+  -e --max-diff-length LENGTH  Maximum size of the diff output.
+  -H --handler HANDLER         The notification handler, such as "HTML".
+  -F --filter FILTER           An output filter, such as "Markdown".
+  -A --author-url URL          Include link to specified author URL.
+  -U --revision-url URL        Include links to specified Revision URL.
+  -T --rt-url URL              Include links to specified Request Tracker URL.
+  -B --bugzilla-url URL        Include links to specified Bugzilla URL.
+  -J --jira-url URL            Include links to specified JIRA URL.
+  -G --gnats-url URL           Include links to specified Gnats URL.
+     --ticket-map REGEX=URL    Regex and URL for custom ticket identifiers.
+     --header HEADER           Text header to display before body.
+     --footer FOOTER           Text footer to display at end of body.
+  -V --verbose                 Incremental verbose mode.
+  -h --help                    Print this usage statement and exit.
+  -m --man                     Print the complete documentation and exit.
+  -v --version                 Print the version number and exit.
+
+More options may be supported by the subclass of SVN::Notify specified by the
+C<--handler> option or by filters specified by the C<--filter> option. Consult
+the documentation of the relevant modules for details.
+
+=head1 See Also
+
+See L<SVN::Notify|SVN::Notify> for the complete documentation. If you're
+having issues with character encodings, see especially the L<Character
+Encoding Support|SVN::Notify/"Chraracter Encoding Support"> section.
+
+=head1 Author
+
+David E. Wheeler <david@kineticode.com>
+
+=head1 Copyright and License
+
+Copyright (c) 2004-2009 Kineticode, Inc. Some Rights Reserved.
+
+This module is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut

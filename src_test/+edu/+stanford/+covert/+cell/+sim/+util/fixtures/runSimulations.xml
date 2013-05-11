@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+Condition set.
+
+Author: Jonathan Karr, jkarr@stanford.edu
+Affiliation: Covert Lab, Department of Bioengineering, Stanford University
+Last updated: 1/9/2011
+-->
+<conditions
+	xmlns="http://covertlab.stanford.edu"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://covertlab.stanford.edu runSimulations.xsd">
+    <firstName>Jonathan</firstName>
+    <lastName>Karr</lastName>
+    <email>jkarr@stanford.edu</email>
+    <affiliation>Covert Lab, Department of Bioengineering, Stanford University</affiliation>
+    <userName>jkarr</userName>
+    <hostName>covertlab-server1.stanford.edu</hostName>
+    <ipAddress>171.65.102.24</ipAddress>
+    <revision>1151</revision>
+    <differencesFromRevision></differencesFromRevision>
+	<condition>
+		<shortDescription><![CDATA[Test condition 1]]></shortDescription>
+		<longDescription><![CDATA[Test condition 1]]></longDescription>
+		<replicates>1</replicates>
+        <options>
+            <option name="option" state="Metabolite" value="0"/>
+        </options>
+        <parameters>
+            <parameter name="parameter" process="Metabolism" value="0"/>
+        </parameters>
+        <perturbations>
+            <perturbation type="stimulus" component="alpha_radiation" compartment="e" initialTime="0" finalTime="INF" value="0"/>
+            <perturbation type="stimulus" component="gamma_radiation" compartment="e" initialTime="0" finalTime="INF" value="0"/>
+            <perturbation type="media" component="G6P" compartment="e" initialTime="0" finalTime="INF" value="0"/>
+            <perturbation type="media" component="G1P" compartment="e" initialTime="0" finalTime="INF" value="0"/>
+            <perturbation type="geneticKnockout" component="MG_001"/>
+            <perturbation type="geneticKnockout" component="MG_003"/>
+        </perturbations>
+	</condition>
+</conditions>

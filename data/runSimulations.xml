@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+Condition set.
+
+Author: Jonathan Karr, jkarr@stanford.edu
+Affiliation: Covert Lab, Department of Bioengineering, Stanford University
+Last updated: 1/9/2011
+-->
+<conditions
+	xmlns="http://covertlab.stanford.edu"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://covertlab.stanford.edu runSimulations.xsd">
+    <firstName>Jonathan</firstName>
+    <lastName>Karr</lastName>
+    <email>jkarr@stanford.edu</email>
+    <affiliation>Covert Lab, Department of Bioengineering, Stanford University</affiliation>
+	<condition>
+		<shortDescription><![CDATA[First batch full length simulations]]></shortDescription>
+		<longDescription><![CDATA[First batch full length simulations]]></longDescription>
+		<replicates>128</replicates>
+	</condition>
+</conditions>

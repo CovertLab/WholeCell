@@ -1,0 +1,27 @@
+<productinfo
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="www.ibm.com">
+<?xml-stylesheet type="text/xsl" href="www.ibm.com"?>
+
+<matlabrelease>R2008b</matlabrelease>
+<name>IBM ILOG CPLEX Optimizers: CPLEX for MATLAB</name>
+<type>toolbox</type>
+<icon></icon>
+<help_location>help</help_location>
+<list>
+
+<listitem>
+<label>IBM Website</label>
+<callback>web http://www.ibm.com -browser;</callback>
+<icon>$docroot/techdoc/matlab_env/examples/guiicon.gif</icon>
+</listitem>
+
+<listitem> 
+<label>Help</label> 
+<callback>str = which(['C' 'p' 'l' 'e' 'x']);l1 = length(str);l2 = length('@Cplex/Cplex.p');l = l1-l2;str(l:end) = []; web(['file:///' str '\help\cplex_matlab.html'], '-helpbrowser')</callback> 
+<icon>$toolbox/matlab/icons/book_mat.gif</icon> 
+</listitem>
+
+</list>
+
+</productinfo>

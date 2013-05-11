@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+Simulation conditions XML schema.
+
+Author: Jonathan Karr, jkarr@stanford.edu
+Affiliation: Covert Lab, Department of Bioengineering, Stanford University
+Last updated: 1/9/2011
+-->
+<xs:schema 
+	xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	targetNamespace="http://covertlab.stanford.edu"
+	xmlns="http://covertlab.stanford.edu"
+	elementFormDefault="qualified">
+	
+	<xs:element name="conditions" type="conditionsType"/>
+	
+	<xs:complexType name="conditionsType">
+		<xs:sequence>
+			<xs:element name="firstName" type="xs:string" use="required"/>
+			<xs:element name="lastName" type="xs:string" use="required"/>
+            <xs:element name="email" type="xs:string" use="required"/>
+			<xs:element name="affiliation" type="xs:string" use="required"/>
+            <xs:element name="userName" type="xs:string"/>
+            <xs:element name="hostName" type="xs:string"/>
+            <xs:element name="ipAddress" type="xs:string"/>
+            <xs:element name="revision" type="xs:string"/>
+            <xs:element name="differencesFromRevision" type="xs:string"/>
+			<xs:element name="condition" type="conditionType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="conditionType">
+		<xs:sequence>
+			<xs:element name="shortDescription" type="xs:string" use="required"/>
+			<xs:element name="longDescription" type="xs:string" use="required"/>
+			<xs:element name="replicates" type="xs:positiveInteger" default="1"/>
+			<xs:element name="options" type="optionsType"/>
+			<xs:element name="parameters" type="parametersType"/>
+			<xs:element name="perturbations" type="perturbationsType"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="optionsType">
+		<xs:sequence>
+			<xs:element name="option" type="optionType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="parametersType">
+		<xs:sequence>
+			<xs:element name="parameter" type="parameterType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="perturbationsType">
+		<xs:sequence>
+			<xs:element name="perturbation" type="perturbationType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="optionType">
+		<xs:sequence>
+			<xs:element name="name" type="xs:string"/>
+			<xs:element name="state" type="xs:string"/>
+			<xs:element name="process" type="xs:string"/>
+			<xs:element name="value" type="xs:string"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="parameterType">
+		<xs:sequence>
+			<xs:element name="name" type="xs:string"/>
+			<xs:element name="index" type="xs:string"/>
+			<xs:element name="state" type="xs:string"/>
+			<xs:element name="process" type="xs:string"/>
+			<xs:element name="value" type="xs:string"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="perturbationType">
+		<xs:sequence>
+			<xs:element name="type" type="perturbationTypeType" use="required"/>
+			<xs:element name="component" type="xs:string" use="required"/>
+			<xs:element name="compartment" type="xs:string"/>
+			<xs:element name="initialTime" type="xs:double" default="0"/>
+			<xs:element name="finalTime" type="xs:double" default="INF"/>
+			<xs:element name="value" type="xs:double"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:simpleType name="perturbationTypeType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="geneticKnockout"/>
+			<xsd:enumeration value="stimulus"/>
+			<xsd:enumeration value="media"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+</xs:schema>

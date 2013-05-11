@@ -1,0 +1,67 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{afterpage}
+\usepackage[font=Large,format=plain,labelformat=empty,labelfont=bf,up,labelsep=none,margin=0.0in,justification=centering,singlelinecheck=true]{caption}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{cmbright}
+\usepackage{pdfpages}
+\usepackage[titles]{tocloft}
+\usepackage{xcolor}
+\usepackage{chngpage}
+\usepackage{sectsty}
+\usepackage{rotating}
+%\usepackage{pgf}
+%\usepackage{tikz,pgfplots}
+%\usepackage{pgffor}
+%\usepgflibrary{plothandlers}
+%\usepackage{pstricks, pst-node, pst-plot, pst-circ}
+
+\setlength{\oddsidemargin}{-0.50in}
+\setlength{\evensidemargin}{-0.75in}
+\setlength{\textwidth}{7.75in}
+\setlength{\topmargin}{-1.0in}
+\setlength{\textheight}{9.925in}
+\setlength{\headheight}{0.25in}
+\setlength{\headsep}{0in}
+\setlength{\footskip}{0.30in}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\setlength{\cftbeforesecskip}{1.0ex}
+\renewcommand{\cftdotsep}{\cftdot}
+\renewcommand{\numberline}[1]{}
+\renewcommand{\contentsname}{\vskip-4ex}
+\renewcommand{\thesection}{}
+\renewcommand{\thesubsection}{}
+\setcounter{tocdepth}{2}
+
+\begin{document}
+
+\includepdf{data/summaryCoverPage.pdf}
+
+\title{<TMPL_VAR NAME=title>}
+\date{\today}
+\author{Whole-Cell Team \\ Covert Lab, Department of Bioengineering, Stanford University}
+%\maketitle
+
+\fancypagestyle{plain}
+{
+	\fancyhead{}
+	\fancyfoot{}
+}
+
+\begin{center}
+
+\begin{adjustwidth}{1.35in}{1.35in}
+{\LARGE\textbf{\textit{M. genitalium} Whole Cell Model}}
+\tableofcontents
+\afterpage{\fancyhf[FR]{\raisebox{.05in}{\arabic{page}}}	}
+\end{adjustwidth}
+
+<TMPL_VAR NAME=pages>
+
+\end{center}
+\end{document}

@@ -1,0 +1,75 @@
+#!/bin/sh
+
+#job
+#PBS -N runReindexing-<TMPL_VAR NAME=conditionSetTimeStamp>-<TMPL_VAR NAME=n>
+
+#user
+#PBS -P <TMPL_VAR NAME=linuxRunUser>:<TMPL_VAR NAME=linuxRunUser>
+
+#notification
+#PBS -M <TMPL_VAR NAME=emailAddress>
+#PBS -m a
+
+#resources
+#PBS -l walltime=4:00:00
+#PBS -l nodes=1:ppn=4
+#PBS -l mem=20gb
+#PBS -l vmem=20gb
+
+#log
+#PBS -o <TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=conditionSetTimeStamp>/<TMPL_VAR NAME=n>/out.reindexing.log
+#PBS -e <TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=conditionSetTimeStamp>/<TMPL_VAR NAME=n>/err.reindexing.log
+#PBS -W umask=002
+
+#schedule
+#PBS -W depend=afterany:<TMPL_VAR NAME=afterany>
+
+#staging
+#PBS -v TMPDIR=<TMPL_VAR NAME=nodeTmpDir>
+#PBS -W stagein=<TMPL_VAR NAME=nodeTmpDir>/$PBS_JOBID/@<TMPL_VAR NAME=storageServer>:<TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=conditionSetTimeStamp>/bin/runReindexing/
+#PBS -W stagein=<TMPL_VAR NAME=nodeTmpDir>/$PBS_JOBID/@<TMPL_VAR NAME=storageServer>:<TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=conditionSetTimeStamp>/<TMPL_VAR NAME=n>/
+##PBS -W stageout=<TMPL_VAR NAME=nodeTmpDir>/$PBS_JOBID/<TMPL_VAR NAME=conditionSetTimeStamp>@<TMPL_VAR NAME=storageServer>:<TMPL_VAR NAME=outDir>
+
+#set environment
+export MATLAB_PREFDIR=/tmp/emptydir
+export MCR_CACHE_ROOT=/tmp/mcr_cache_$PBS_JOBID
+mkdir -p $MCR_CACHE_ROOT
+
+#setup
+cd <TMPL_VAR NAME=nodeTmpDir>/$PBS_JOBID
+rm -f <TMPL_VAR NAME=n>/{*.sh,*.xml,*.log}
+mkdir <TMPL_VAR NAME=conditionSetTimeStamp>
+mv <TMPL_VAR NAME=n> <TMPL_VAR NAME=conditionSetTimeStamp>/<TMPL_VAR NAME=n>
+
+#job
+if [ -f <TMPL_VAR NAME=conditionSetTimeStamp>/<TMPL_VAR NAME=n>/state-0.mat ];
+then
+	./run_runReindexing.sh <TMPL_VAR NAME=pathToRunTime> <TMPL_VAR NAME=conditionSetTimeStamp>/<TMPL_VAR NAME=n>
+else
+	echo "No data to reindex"
+    exit 0;
+fi
+
+#set permissions, store data
+rm -rf <TMPL_VAR NAME=conditionSetTimeStamp>/<TMPL_VAR NAME=n>/state-[0-9]*.mat
+rm -rf <TMPL_VAR NAME=conditionSetTimeStamp>/<TMPL_VAR NAME=n>/{fittedConstants,metadata,options,parameters,randStreamStates,summary}.mat
+chmod -R 775 <TMPL_VAR NAME=conditionSetTimeStamp>/
+cp -R <TMPL_VAR NAME=conditionSetTimeStamp>/<TMPL_VAR NAME=n> <TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=conditionSetTimeStamp>
+
+#cleanup
+rm -rf <TMPL_VAR NAME=conditionSetTimeStamp>/<TMPL_VAR NAME=n>/
+rm -rf $MCR_CACHE_ROOT/*
+
+#resources
+echo ""
+echo "=============="
+echo "=== status ==="
+echo "=============="
+qstat -f $PBS_JOBID
+
+#status
+if [[ -f "<TMPL_VAR NAME=conditionSetTimeStamp>/<TMPL_VAR NAME=n>/err.reindexing.log" ]]
+then
+  exit 1
+fi
+exit 0

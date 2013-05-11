@@ -1,0 +1,767 @@
+<!-- Creator     : groff version 1.20.1 -->
+<!-- CreationDate: Thu Oct 28 09:14:36 2010 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title>PDFTK</title>
+
+</head>
+<body>
+
+<h1 align="center">PDFTK</h1>
+
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#OPTIONS">OPTIONS</a><br>
+<a href="#EXAMPLES">EXAMPLES</a><br>
+<a href="#NOTES">NOTES</a><br>
+<a href="#AUTHOR">AUTHOR</a><br>
+
+<hr>
+
+
+<h2>NAME
+<a name="NAME"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">pdftk &minus; A
+handy tool for manipulating PDF</p>
+
+<h2>SYNOPSIS
+<a name="SYNOPSIS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>pdftk</b>
+<i>&lt;input PDF files | - | PROMPT&gt;</i> <br>
+[ <b>input_pw</b> <i>&lt;input PDF owner passwords |
+PROMPT&gt;</i> ] <br>
+[ <i>&lt;operation&gt; &lt;operation arguments&gt;</i> ]
+<br>
+[ <b>output</b> <i>&lt;output filename | - | PROMPT&gt;</i>
+] <br>
+[ <b>encrypt_40bit</b> | <b>encrypt_128bit</b> ] <br>
+[ <b>allow</b> <i>&lt;permissions&gt;</i> ] <br>
+[ <b>owner_pw</b> <i>&lt;owner password | PROMPT&gt;</i> ]
+<br>
+[ <b>user_pw</b> <i>&lt;user password | PROMPT&gt;</i> ]
+<br>
+[ <b>flatten</b> ] [ <b>compress</b> | <b>uncompress</b> ]
+<br>
+[ <b>keep_first_id</b> | <b>keep_final_id</b> ] [
+<b>drop_xfa</b> ] <br>
+[ <b>verbose</b> ] [ <b>dont_ask</b> | <b>do_ask</b> ] <br>
+Where: <i><br>
+&lt;operation&gt;</i> may be empty, or: <br>
+[ <b>cat</b> | <b>shuffle</b> | <b>burst</b> | <b><br>
+generate_fdf</b> | <b>fill_form</b> | <b><br>
+background</b> | <b>multibackground</b> | <b><br>
+stamp</b> | <b>multistamp</b> | <b><br>
+dump_data</b> | <b>dump_data_utf8</b> | <b><br>
+dump_data_fields</b> | <b>dump_data_fields_utf8</b> |
+<b><br>
+update_info</b> | <b>update_info_utf8</b> | <b><br>
+attach_files</b> | <b>unpack_files</b> ]</p>
+
+<p style="margin-left:11%; margin-top: 1em">For Complete
+Help: <b>pdftk --help</b></p>
+
+<h2>DESCRIPTION
+<a name="DESCRIPTION"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">If PDF is
+electronic paper, then pdftk is an electronic
+staple-remover, hole-punch, binder, secret-decoder-ring, and
+X-Ray-glasses. Pdftk is a simple tool for doing everyday
+things with PDF documents. Use it to:</p>
+
+<p style="margin-left:11%; margin-top: 1em">* Merge PDF
+Documents or Collate PDF Page Scans <br>
+* Split PDF Pages into a New Document <br>
+* Rotate PDF Documents or Pages <br>
+* Decrypt Input as Necessary (Password Required) <br>
+* Encrypt Output as Desired <br>
+* Fill PDF Forms with X/FDF Data and/or Flatten Forms <br>
+* Generate FDF Data Stencils from PDF Forms <br>
+* Apply a Background Watermark or a Foreground Stamp <br>
+* Report PDF Metrics such as Metadata and Bookmarks <br>
+* Update PDF Metadata <br>
+* Attach Files to PDF Pages or the PDF Document <br>
+* Unpack PDF Attachments <br>
+* Burst a PDF Document into Single Pages <br>
+* Uncompress and Re-Compress Page Streams <br>
+* Repair Corrupted PDF (Where Possible)</p>
+
+<h2>OPTIONS
+<a name="OPTIONS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">A summary of
+options is included below. <b><br>
+&minus;&minus;help</b>, <b>&minus;h</b></p>
+
+<p style="margin-left:22%;">Show summary of options.</p>
+
+<p style="margin-left:11%;"><b>&lt;input PDF files | - |
+PROMPT&gt;</b></p>
+
+<p style="margin-left:22%;">A list of the input PDF files.
+If you plan to combine these PDFs (without using handles)
+then list files in the order you want them combined. Use
+<b>-</b> to pass a single PDF into pdftk via stdin. Input
+files can be associated with handles, where a handle is a
+single, upper-case letter:</p>
+
+<p style="margin-left:22%; margin-top: 1em"><i>&lt;input
+PDF handle&gt;</i><b>=</b><i>&lt;input PDF
+filename&gt;</i></p>
+
+<p style="margin-left:22%; margin-top: 1em">Handles are
+often omitted. They are useful when specifying PDF passwords
+or page ranges, later.</p>
+
+<p style="margin-left:22%; margin-top: 1em">For example:
+A=input1.pdf B=input2.pdf</p>
+
+<p style="margin-left:11%;"><b>[input_pw &lt;input PDF
+owner passwords | PROMPT&gt;]</b></p>
+
+<p style="margin-left:22%;">Input PDF owner passwords, if
+necessary, are associated with files by using their
+handles:</p>
+
+<p style="margin-left:22%; margin-top: 1em"><i>&lt;input
+PDF handle&gt;</i><b>=</b><i>&lt;input PDF file owner
+password&gt;</i></p>
+
+<p style="margin-left:22%; margin-top: 1em">If handles are
+not given, then passwords are associated with input files by
+order.</p>
+
+<p style="margin-left:22%; margin-top: 1em">Most pdftk
+features require that encrypted input PDF are accompanied by
+the ~owner~ password. If the input PDF has no owner
+password, then the user password must be given, instead. If
+the input PDF has no passwords, then no password should be
+given.</p>
+
+<p style="margin-left:22%; margin-top: 1em">When running in
+<b>do_ask</b> mode, pdftk will prompt you for a password if
+the supplied password is incorrect or none was given.</p>
+
+<p style="margin-left:11%;"><b>[&lt;operation&gt;
+&lt;operation arguments&gt;]</b></p>
+
+<p style="margin-left:22%;">If this optional argument is
+omitted, then pdftk runs in &rsquo;filter&rsquo; mode.
+Filter mode takes only one PDF input and creates a new PDF
+after applying all of the output options, like encryption
+and compression.</p>
+
+<p style="margin-left:22%; margin-top: 1em">Available
+operations are: <b>cat</b>, <b>shuffle</b>, <b>burst</b>,
+<b>generate_fdf</b>, <b>fill_form</b>, <b>background</b>,
+<b>multibackground</b>, <b>stamp</b>, <b>multistamp</b>,
+<b>dump_data</b>, <b>dump_data_utf8</b>,
+<b>dump_data_fields</b>, <b>dump_data_fields_utf8</b>,
+<b>update_info</b>, <b>update_info_utf8</b>,
+<b>attach_files</b>, <b>unpack_files</b>. Some operations
+takes additional arguments, described below.</p>
+
+<p style="margin-left:15%;"><b>cat [&lt;page
+ranges&gt;]</b></p>
+
+<p style="margin-left:26%;">Catenates pages from input PDFs
+to create a new PDF. Page order in the new PDF is specified
+by the order of the given page ranges. Page ranges are
+described like this:</p>
+
+<p style="margin-left:26%; margin-top: 1em"><i>&lt;input
+PDF handle&gt;</i>[<i>&lt;begin page
+number&gt;</i>[<b>-</b><i>&lt;end page
+number&gt;</i>[<i>&lt;qualifier&gt;</i>]]][<i>&lt;page
+rotation&gt;</i>]</p>
+
+<p style="margin-left:26%; margin-top: 1em">Where the
+handle identifies one of the input PDF files, and the
+beginning and ending page numbers are one-based references
+to pages in the PDF file, and the qualifier can be
+<b>even</b> or <b>odd</b>, and the page rotation can be
+<b>N</b>, <b>S</b>, <b>E</b>, <b>W</b>, <b>L</b>, <b>R</b>,
+or <b>D</b>.</p>
+
+<p style="margin-left:26%; margin-top: 1em">If the handle
+is omitted from the page range, then the pages are taken
+from the first input PDF.</p>
+
+<p style="margin-left:26%; margin-top: 1em">The <b>even</b>
+qualifier causes pdftk to use only the even-numbered PDF
+pages, so <b>1-6even</b> yields pages 2, 4 and 6 in that
+order. <b>6-1even</b> yields pages 6, 4 and 2 in that
+order.</p>
+
+<p style="margin-left:26%; margin-top: 1em">The <b>odd</b>
+qualifier works similarly to the <b>even</b>.</p>
+
+<p style="margin-left:26%; margin-top: 1em">The page
+rotation setting can cause pdftk to rotate pages and
+documents. Each option sets the page rotation as follows (in
+degrees): <b>N</b>: 0, <b>E</b>: 90, <b>S</b>: 180,
+<b>W</b>: 270, <b>L</b>: -90, <b>R</b>: +90, <b>D</b>: +180.
+<b>L</b>, <b>R</b>, and <b>D</b> make relative adjustments
+to a page&rsquo;s rotation.</p>
+
+<p style="margin-left:26%; margin-top: 1em">If no arguments
+are passed to cat, then pdftk combines all input PDFs in the
+order they were given to create the output.</p>
+
+<p style="margin-left:26%; margin-top: 1em"><b>NOTES:</b>
+<br>
+* <i>&lt;end page number&gt;</i> may be less than
+<i>&lt;begin page number&gt;</i>. <br>
+* The keyword <b>end</b> may be used to reference the final
+page of a document instead of a page number. <br>
+* Reference a single page by omitting the ending page
+number. <br>
+* The handle may be used alone to represent the entire PDF
+document, e.g., B1-end is the same as B.</p>
+
+<p style="margin-left:26%; margin-top: 1em"><b>Page Range
+Examples w/o Handles: <br>
+1-endE</b> - rotate entire document 90 degrees <b><br>
+5 11 20</b> - take single pages from input PDF <b><br>
+5-25oddW</b> - take odd pages in range, rotate 90 degrees
+<b><br>
+6-1</b> - reverse pages in range from input PDF</p>
+
+<p style="margin-left:26%; margin-top: 1em"><b>Page Range
+Examples Using Handles:</b> <br>
+Say <b>A=in1.pdf B=in2.pdf</b>, then: <b><br>
+A1-21</b> - take range from in1.pdf <b><br>
+Bend-1odd</b> - take all odd pages from in2.pdf in reverse
+order <b><br>
+A72</b> - take a single page from in1.pdf <b><br>
+A1-21 Beven A72</b> - assemble pages from both in1.pdf and
+in2.pdf <b><br>
+AW</b> - rotate entire in1.pdf document 90 degrees <b><br>
+B</b> - use all of in2.pdf <b><br>
+A2-30evenL</b> - take the even pages from the range, remove
+90 degrees from each page&rsquo;s rotation <b><br>
+A A</b> - catenate in1.pdf with in1.pdf <b><br>
+AevenW AoddE</b> - apply rotations to even pages, odd pages
+from in1.pdf <b><br>
+AW BW BD</b> - catenate rotated documents</p>
+
+<p style="margin-left:15%;"><b>shuffle [&lt;page
+ranges&gt;]</b></p>
+
+<p style="margin-left:26%;">Collates pages from input PDFs
+to create a new PDF. Works like the <b>cat</b> operation
+except that it takes one page at a time from each page range
+to assemble the output PDF. If one range runs out of pages,
+it continues with the remaining ranges. Ranges can use all
+of the features described above for <b>cat</b>, like reverse
+page ranges, multiple ranges from a single PDF, and page
+rotation. This feature was designed to help collate PDF
+pages after scanning paper documents.</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="15%"></td>
+<td width="8%">
+
+
+<p><b>burst</b></p></td>
+<td width="3%"></td>
+<td width="74%">
+
+
+<p>Splits a single, input PDF document into individual
+pages. Also creates a report named <b>doc_data.txt</b> which
+is the same as the output from <b>dump_data</b>. If the
+<b>output</b> section is omitted, then PDF pages are named:
+pg_%04d.pdf, e.g.: pg_0001.pdf, pg_0002.pdf, etc. To name
+these pages yourself, supply a printf-styled format string
+via the <b>output</b> section. For example, if you want
+pages named: page_01.pdf, page_02.pdf, etc., pass <b>output
+page_%02d.pdf</b> to pdftk. Encryption can be applied to the
+output by appending output options such as <b>owner_pw</b>,
+e.g.:</p> </td></tr>
+</table>
+
+<p style="margin-left:26%; margin-top: 1em">pdftk in.pdf
+burst owner_pw foopass</p>
+
+<p style="margin-left:15%;"><b>generate_fdf</b></p>
+
+<p style="margin-left:26%;">Reads a single, input PDF file
+and generates an FDF file suitable for <b>fill_form</b> out
+of it to the given output filename or (if no output is
+given) to stdout. Does not create a new PDF.</p>
+
+<p style="margin-left:15%;"><b>fill_form &lt;FDF data
+filename | XFDF data filename | - | PROMPT&gt;</b></p>
+
+<p style="margin-left:26%;">Fills the single input
+PDF&rsquo;s form fields with the data from an FDF file, XFDF
+file or stdin. Enter the data filename after
+<b>fill_form</b>, or use <b>-</b> to pass the data via
+stdin, like so:</p>
+
+<p style="margin-left:26%; margin-top: 1em">pdftk form.pdf
+fill_form data.fdf output form.filled.pdf</p>
+
+<p style="margin-left:26%; margin-top: 1em">After filling a
+form, the form fields remain interactive unless you also use
+the <b>flatten</b> output option. <b>flatten</b> merges the
+form fields with the PDF pages. You can use <b>flatten</b>
+alone, too, but only on a single PDF:</p>
+
+<p style="margin-left:26%; margin-top: 1em">pdftk form.pdf
+fill_form data.fdf output out.pdf flatten</p>
+
+<p style="margin-left:26%; margin-top: 1em">or:</p>
+
+<p style="margin-left:26%; margin-top: 1em">pdftk
+form.filled.pdf output out.pdf flatten</p>
+
+<p style="margin-left:26%; margin-top: 1em">If the input
+FDF file includes Rich Text formatted data in addition to
+plain text, then the Rich Text data is packed into the form
+fields <i>as well as</i> the plain text. Pdftk also sets a
+flag that cues Acrobat/Reader to generate new field
+appearances based on the Rich Text data. That way, when the
+user opens the PDF, the viewer will create the Rich Text
+fields on the spot. If the user&rsquo;s PDF viewer does not
+support Rich Text, then the user will see the plain text
+data instead. If you flatten this form before Acrobat has a
+chance to create (and save) new field appearances, then the
+plain text field data is what you&rsquo;ll see.</p>
+
+<p style="margin-left:15%;"><b>background &lt;background
+PDF filename | - | PROMPT&gt;</b></p>
+
+<p style="margin-left:26%;">Applies a PDF watermark to the
+background of a single input PDF. Pass the background
+PDF&rsquo;s filename after <b>background</b> like so:</p>
+
+<p style="margin-left:26%; margin-top: 1em">pdftk in.pdf
+background back.pdf output out.pdf</p>
+
+<p style="margin-left:26%; margin-top: 1em">Pdftk uses only
+the first page from the background PDF and applies it to
+every page of the input PDF. This page is scaled and rotated
+as needed to fit the input page. You can use <b>-</b> to
+pass a background PDF into pdftk via stdin.</p>
+
+<p style="margin-left:26%; margin-top: 1em">If the input
+PDF does not have a transparent background (such as a PDF
+created from page scans) then the resulting background
+won&rsquo;t be visible -- use the <b>stamp</b> operation
+instead.</p>
+
+<p style="margin-left:15%;"><b>multibackground
+&lt;background PDF filename | - | PROMPT&gt;</b></p>
+
+<p style="margin-left:26%;">Same as the <b>background</b>
+operation, but applies each page of the background PDF to
+the corresponding page of the input PDF. If the input PDF
+has more pages than the stamp PDF, then the final stamp page
+is repeated across these remaining pages in the input
+PDF.</p>
+
+<p style="margin-left:15%;"><b>stamp &lt;stamp PDF filename
+| - | PROMPT&gt;</b></p>
+
+<p style="margin-left:26%;">This behaves just like the
+<b>background</b> operation except it overlays the stamp PDF
+page <i>on top</i> of the input PDF document&rsquo;s pages.
+This works best if the stamp PDF page has a transparent
+background.</p>
+
+<p style="margin-left:15%;"><b>multistamp &lt;stamp PDF
+filename | - | PROMPT&gt;</b></p>
+
+<p style="margin-left:26%;">Same as the <b>stamp</b>
+operation, but applies each page of the background PDF to
+the corresponding page of the input PDF. If the input PDF
+has more pages than the stamp PDF, then the final stamp page
+is repeated across these remaining pages in the input
+PDF.</p>
+
+<p style="margin-left:15%;"><b>dump_data</b></p>
+
+<p style="margin-left:26%;">Reads a single, input PDF file
+and reports various statistics, metadata, bookmarks (a/k/a
+outlines), and page labels to the given output filename or
+(if no output is given) to stdout. Non-ASCII characters are
+encoded as XML numerical entities. Does not create a new
+PDF.</p>
+
+<p style="margin-left:15%;"><b>dump_data_utf8</b></p>
+
+<p style="margin-left:26%;">Same as <b>dump_data</b>
+excepct that the output is encoded as UTF-8.</p>
+
+<p style="margin-left:15%;"><b>dump_data_fields</b></p>
+
+<p style="margin-left:26%;">Reads a single, input PDF file
+and reports form field statistics to the given output
+filename or (if no output is given) to stdout. Non-ASCII
+characters are encoded as XML numerical entities. Does not
+create a new PDF.</p>
+
+
+<p style="margin-left:15%;"><b>dump_data_fields_utf8</b></p>
+
+<p style="margin-left:26%;">Same as <b>dump_data_fields</b>
+excepct that the output is encoded as UTF-8.</p>
+
+<p style="margin-left:15%;"><b>update_info &lt;info data
+filename | - | PROMPT&gt;</b></p>
+
+<p style="margin-left:26%;">Changes the metadata stored in
+a single PDF&rsquo;s Info dictionary to match the input data
+file. The input data file uses the same syntax as the output
+from <b>dump_data</b>. Non-ASCII characters should be
+encoded as XML numerical entities. This does not change the
+metadata stored in the PDF&rsquo;s XMP stream, if it has
+one. For example:</p>
+
+<p style="margin-left:26%; margin-top: 1em">pdftk in.pdf
+update_info in.info output out.pdf</p>
+
+<p style="margin-left:15%;"><b>update_info_utf8 &lt;info
+data filename | - | PROMPT&gt;</b></p>
+
+<p style="margin-left:26%;">Same as <b>update_info</b>
+except that the input is encoded as UTF-8.</p>
+
+<p style="margin-left:15%;"><b>attach_files &lt;attachment
+filenames | PROMPT&gt; [to_page &lt;page number | <br>
+PROMPT&gt;]</b></p>
+
+<p style="margin-left:26%;">Packs arbitrary files into a
+PDF using PDF&rsquo;s file attachment features. More than
+one attachment may be listed after <b>attach_files</b>.
+Attachments are added at the document level unless the
+optional <b>to_page</b> option is given, in which case the
+files are attached to the given page number (the first page
+is 1, the final page is <b>end</b>). For example:</p>
+
+<p style="margin-left:26%; margin-top: 1em">pdftk in.pdf
+attach_files table1.html table2.html to_page 6 output
+out.pdf</p>
+
+<p style="margin-left:15%;"><b>unpack_files</b></p>
+
+<p style="margin-left:26%;">Copies all of the attachments
+from the input PDF into the current folder or to an output
+directory given after <b>output</b>. For example:</p>
+
+<p style="margin-left:26%; margin-top: 1em">pdftk
+report.pdf unpack_files output ~/atts/</p>
+
+<p style="margin-left:26%; margin-top: 1em">or,
+interactively:</p>
+
+<p style="margin-left:26%; margin-top: 1em">pdftk
+report.pdf unpack_files output PROMPT</p>
+
+<p style="margin-left:11%;"><b>[output &lt;output filename
+| - | PROMPT&gt;]</b></p>
+
+<p style="margin-left:22%;">The output PDF filename may not
+be set to the name of an input filename. Use <b>-</b> to
+output to stdout. When using the <b>dump_data</b> operation,
+use <b>output</b> to set the name of the output data file.
+When using the <b>unpack_files</b> operation, use
+<b>output</b> to set the name of an output directory. When
+using the <b>burst</b> operation, you can use <b>output</b>
+to control the resulting PDF page filenames (described
+above).</p>
+
+<p style="margin-left:11%;"><b>[encrypt_40bit |
+encrypt_128bit]</b></p>
+
+<p style="margin-left:22%;">If an output PDF user or owner
+password is given, output PDF encryption strength defaults
+to 128 bits. This can be overridden by specifying
+encrypt_40bit.</p>
+
+<p style="margin-left:11%;"><b>[allow
+&lt;permissions&gt;]</b></p>
+
+<p style="margin-left:22%;">Permissions are applied to the
+output PDF only if an encryption strength is specified or an
+owner or user password is given. If permissions are not
+specified, they default to &rsquo;none,&rsquo; which means
+all of the following features are disabled.</p>
+
+<p style="margin-left:22%; margin-top: 1em">The
+<b>permissions</b> section may include one or more of the
+following features: <b><br>
+Printing</b></p>
+
+<p style="margin-left:32%;">Top Quality Printing</p>
+
+<p style="margin-left:22%;"><b>DegradedPrinting</b></p>
+
+<p style="margin-left:32%;">Lower Quality Printing</p>
+
+<p style="margin-left:22%;"><b>ModifyContents</b></p>
+
+<p style="margin-left:32%;">Also allows Assembly</p>
+
+<p style="margin-left:22%;"><b>Assembly <br>
+CopyContents</b></p>
+
+<p style="margin-left:32%;">Also allows ScreenReaders</p>
+
+<p style="margin-left:22%;"><b>ScreenReaders <br>
+ModifyAnnotations</b></p>
+
+<p style="margin-left:32%;">Also allows FillIn</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="22%"></td>
+<td width="9%">
+
+
+<p><b>FillIn</b></p></td>
+<td width="69%">
+</td></tr>
+</table>
+
+<p style="margin-left:22%;"><b>AllFeatures</b></p>
+
+<p style="margin-left:32%;">Allows the user to perform all
+of the above, and top quality printing.</p>
+
+<p style="margin-left:11%;"><b>[owner_pw &lt;owner password
+| PROMPT&gt;] <br>
+[user_pw &lt;user password | PROMPT&gt;]</b></p>
+
+<p style="margin-left:22%;">If an encryption strength is
+given but no passwords are supplied, then the owner and user
+passwords remain empty, which means that the resulting PDF
+may be opened and its security parameters altered by
+anybody.</p>
+
+<p style="margin-left:11%;"><b>[compress |
+uncompress]</b></p>
+
+<p style="margin-left:22%;">These are only useful when you
+want to edit PDF code in a text editor like vim or emacs.
+Remove PDF page stream compression by applying the
+<b>uncompress</b> filter. Use the <b>compress</b> filter to
+restore compression.</p>
+
+<p style="margin-left:11%;"><b>[flatten]</b></p>
+
+<p style="margin-left:22%;">Use this option to merge an
+input PDF&rsquo;s interactive form fields (and their data)
+with the PDF&rsquo;s pages. Only one input PDF may be given.
+Sometimes used with the <b>fill_form</b> operation.</p>
+
+<p style="margin-left:11%;"><b>[keep_first_id |
+keep_final_id]</b></p>
+
+<p style="margin-left:22%;">When combining pages from
+multiple PDFs, use one of these options to copy the document
+ID from either the first or final input document into the
+new output PDF. Otherwise pdftk creates a new document ID
+for the output PDF. When no operation is given, pdftk always
+uses the ID from the (single) input PDF.</p>
+
+<p style="margin-left:11%;"><b>[drop_xfa]</b></p>
+
+<p style="margin-left:22%;">If your input PDF is a form
+created using Acrobat 7 or Adobe Designer, then it probably
+has XFA data. Filling such a form using pdftk yields a PDF
+with data that fails to display in Acrobat 7 (and 6?). The
+workaround solution is to remove the form&rsquo;s XFA data,
+either before you fill the form using pdftk or at the time
+you fill the form. Using this option causes pdftk to omit
+the XFA data from the output PDF form.</p>
+
+<p style="margin-left:22%; margin-top: 1em">This option is
+only useful when running pdftk on a single input PDF. When
+assembling a PDF from multiple inputs using pdftk, any XFA
+data in the input is automatically omitted.</p>
+
+<p style="margin-left:11%;"><b>[verbose]</b></p>
+
+<p style="margin-left:22%;">By default, pdftk runs quietly.
+Append <b>verbose</b> to the end and it will speak up.</p>
+
+<p style="margin-left:11%;"><b>[dont_ask | do_ask]</b></p>
+
+<p style="margin-left:22%;">Depending on the compile-time
+settings (see ASK_ABOUT_WARNINGS), pdftk might prompt you
+for further input when it encounters a problem, such as a
+bad password. Override this default behavior by adding
+<b>dont_ask</b> (so pdftk won&rsquo;t ask you what to do) or
+<b>do_ask</b> (so pdftk will ask you what to do).</p>
+
+<p style="margin-left:22%; margin-top: 1em">When running in
+<b>dont_ask</b> mode, pdftk will over-write files with its
+output without notice.</p>
+
+<h2>EXAMPLES
+<a name="EXAMPLES"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>Collate
+scanned pages</b></p>
+
+<p style="margin-left:14%;">pdftk A=even.pdf B=odd.pdf
+shuffle A B output collated.pdf <br>
+or if odd.pdf is in reverse order: <br>
+pdftk A=even.pdf B=odd.pdf shuffle A Bend-1 output
+collated.pdf</p>
+
+<p style="margin-left:11%;"><b>Decrypt a PDF</b></p>
+
+<p style="margin-left:14%;">pdftk secured.pdf input_pw
+foopass output unsecured.pdf</p>
+
+<p style="margin-left:11%;"><b>Encrypt a PDF using 128-bit
+strength (the default), withhold all <br>
+permissions (the default)</b></p>
+
+<p style="margin-left:14%;">pdftk 1.pdf output 1.128.pdf
+owner_pw foopass</p>
+
+<p style="margin-left:11%;"><b>Same as above, except
+password &rsquo;baz&rsquo; must also be used to open output
+<br>
+PDF</b></p>
+
+<p style="margin-left:14%;">pdftk 1.pdf output 1.128.pdf
+owner_pw foo user_pw baz</p>
+
+<p style="margin-left:11%;"><b>Same as above, except
+printing is allowed (once the PDF is open)</b></p>
+
+<p style="margin-left:14%;">pdftk 1.pdf output 1.128.pdf
+owner_pw foo user_pw baz allow printing</p>
+
+<p style="margin-left:11%;"><b>Join in1.pdf and in2.pdf
+into a new PDF, out1.pdf</b></p>
+
+<p style="margin-left:14%;">pdftk in1.pdf in2.pdf cat
+output out1.pdf <br>
+or (using handles): <br>
+pdftk A=in1.pdf B=in2.pdf cat A B output out1.pdf <br>
+or (using wildcards): <br>
+pdftk *.pdf cat output combined.pdf</p>
+
+<p style="margin-left:11%;"><b>Remove &rsquo;page 13&rsquo;
+from in1.pdf to create out1.pdf</b></p>
+
+<p style="margin-left:14%;">pdftk in.pdf cat 1-12 14-end
+output out1.pdf <br>
+or: <br>
+pdftk A=in1.pdf cat A1-12 A14-end output out1.pdf</p>
+
+<p style="margin-left:11%;"><b>Apply 40-bit encryption to
+output, revoking all permissions (the <br>
+default). Set the owner PW to &rsquo;foopass&rsquo;.</b></p>
+
+<p style="margin-left:14%;">pdftk 1.pdf 2.pdf cat output
+3.pdf encrypt_40bit owner_pw foopass</p>
+
+<p style="margin-left:11%;"><b>Join two files, one of which
+requires the password &rsquo;foopass&rsquo;. The <br>
+output is not encrypted.</b></p>
+
+<p style="margin-left:14%;">pdftk A=secured.pdf 2.pdf
+input_pw A=foopass cat output 3.pdf</p>
+
+<p style="margin-left:11%;"><b>Uncompress PDF page streams
+for editing the PDF in a text editor (e.g., <br>
+vim, emacs)</b></p>
+
+<p style="margin-left:14%;">pdftk doc.pdf output
+doc.unc.pdf uncompress</p>
+
+<p style="margin-left:11%;"><b>Repair a PDF&rsquo;s
+corrupted XREF table and stream lengths, if possible</b></p>
+
+<p style="margin-left:14%;">pdftk broken.pdf output
+fixed.pdf</p>
+
+<p style="margin-left:11%;"><b>Burst a single PDF document
+into pages and dump its data to <br>
+doc_data.txt</b></p>
+
+<p style="margin-left:14%;">pdftk in.pdf burst</p>
+
+<p style="margin-left:11%;"><b>Burst a single PDF document
+into encrypted pages. Allow low-quality <br>
+printing</b></p>
+
+<p style="margin-left:14%;">pdftk in.pdf burst owner_pw
+foopass allow DegradedPrinting</p>
+
+<p style="margin-left:11%;"><b>Write a report on PDF
+document metadata and bookmarks to report.txt</b></p>
+
+<p style="margin-left:14%;">pdftk in.pdf dump_data output
+report.txt</p>
+
+<p style="margin-left:11%;"><b>Rotate the first PDF page to
+90 degrees clockwise</b></p>
+
+<p style="margin-left:14%;">pdftk in.pdf cat 1E 2-end
+output out.pdf</p>
+
+<p style="margin-left:11%;"><b>Rotate an entire PDF
+document to 180 degrees</b></p>
+
+<p style="margin-left:14%;">pdftk in.pdf cat 1-endS output
+out.pdf</p>
+
+<h2>NOTES
+<a name="NOTES"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">The pdftk home
+page permalink is: <br>
+http://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/ <br>
+The easy-to-remember shortcut is: www.pdftk.com</p>
+
+<h2>AUTHOR
+<a name="AUTHOR"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Sid Steward
+(sid.steward at pdflabs dot com) maintains pdftk. Please
+email him with questions or bug reports. Include pdftk in
+the subject line to ensure successful delivery. Thank
+you.</p>
+<hr>
+</body>
+</html>

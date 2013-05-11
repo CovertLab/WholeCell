@@ -1,0 +1,63 @@
+#!/bin/sh
+
+#job
+#PBS -N runDataExport-<TMPL_VAR NAME=iSim>
+
+#user
+#PBS -P <TMPL_VAR NAME=linuxUser>:<TMPL_VAR NAME=linuxUser>
+
+#notification
+#PBS -M <TMPL_VAR NAME=emailAddress>
+#PBS -m abe
+
+#resources
+#PBS -l walltime=48:00:00
+#PBS -l nodes=1:ppn=4
+#PBS -l mem=20gb
+#PBS -l vmem=20gb
+
+#log
+#PBS -o <TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=conditionSetTimeStamp>/<TMPL_VAR NAME=iSim>/json/out.dataexport.log
+#PBS -e <TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=conditionSetTimeStamp>/<TMPL_VAR NAME=iSim>/json/err.dataexport.log
+#PBS -W umask=002
+
+#set environment
+export MATLAB_PREFDIR=/tmp/emptydir
+export MCR_CACHE_ROOT=/tmp/mcr_cache_$PBS_JOBID
+mkdir -p $MCR_CACHE_ROOT
+
+#setup
+cd <TMPL_VAR NAME=baseDir>
+
+#delete any existing data
+rm -rf <TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=conditionSetTimeStamp>/<TMPL_VAR NAME=iSim>/json/*
+
+#data export
+./run.sh runDataExport \
+  <TMPL_VAR NAME=pathToRunTime> \
+  <TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=conditionSetTimeStamp>/<TMPL_VAR NAME=iSim>/json/matlab.dataexport.log \
+  <TMPL_VAR NAME=conditionSetTimeStamp> <TMPL_VAR NAME=iSim>
+  
+#create FtsZ ring data
+python2.7 /home/projects/WholeCellViz/data/ftszring_draw.py <TMPL_VAR NAME=outDir> <TMPL_VAR NAME=conditionSetTimeStamp> <TMPL_VAR NAME=iSim>
+  
+#set permissions
+sudo chown -R <TMPL_VAR NAME=linuxUser>:<TMPL_VAR NAME=linuxUser> <TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=conditionSetTimeStamp>/<TMPL_VAR NAME=iSim>/json
+chmod -R 775 <TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=conditionSetTimeStamp>/<TMPL_VAR NAME=iSim>/json
+
+#cleanup
+rm -rf $MCR_CACHE_ROOT/*
+
+#resources
+echo ""
+echo "=============="
+echo "=== status ==="
+echo "=============="
+qstat -f $PBS_JOBID
+
+#status
+if [[ -f "<TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=conditionSetTimeStamp>/<TMPL_VAR NAME=iSim>/json/err.dataexport.log" ]]
+then
+  exit 1
+fi
+exit 0
