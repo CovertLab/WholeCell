@@ -36,7 +36,7 @@ classdef MetabolicReaction < edu.stanford.covert.cell.sim.CellState
     %state
     properties
         growth  %growth rate (cell/s)
-        fluxs   %flux of each reaction, size: [length(reactionWholeCellModelIDs) X 1 X time]
+        fluxs   %flux of each reaction, size: [length(reactionWholeCellModelIDs) X 1 X time] (rxn/s)
     end
     
     %dependent state
