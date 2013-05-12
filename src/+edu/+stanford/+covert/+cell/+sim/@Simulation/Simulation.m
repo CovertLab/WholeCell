@@ -160,6 +160,19 @@ classdef Simulation < handle
             result = cellfun(@(m) m.wholeCellModelID, this.processes, 'UniformOutput', false);
         end
         
+        function this = applyAllParameters(this, varargin)
+            if nargin >= 2 && isstruct(varargin{1})
+                values = varargin{1};
+            else
+                values = cell2struct(varargin(2:2:end), varargin(1:2:end-1), 2);
+            end
+            
+            this.applyOptions(values)
+            this.applyParameters(values);
+            this.applyFittedConstants(values);
+            this.applyFixedConstants(values);
+        end
+        
         function this = applyOptions(this, varargin)
             if nargin >= 2 && isstruct(varargin{1})
                 options = varargin{1};
@@ -340,6 +353,10 @@ classdef Simulation < handle
             this.setFromStruct(value, 'fittedConstants', {});
         end
         
+        function this = applyFixedConstants(this, value)
+            this.setFromStruct(value, 'fixedConstants', {});
+        end
+        
         function this = applyRandStreamStates(this, value)
             if size(value.simulation(:, 1), 2) > 1
                 warning('WholeCell:warning', 'Applying first rand stream state');
@@ -407,6 +424,16 @@ classdef Simulation < handle
                 o.seed = this.seed;
                 o.seedRandStream();
             end
+        end
+        
+        function value = getAllParameters(this)
+            import edu.stanford.covert.util.StructUtil;
+            
+            value = struct;
+            value = StructUtil.catstruct(value, this.getOptions());
+            value = StructUtil.catstruct(value, this.getParameters());
+            value = StructUtil.catstruct(value, this.getFittedConstants());
+            value = StructUtil.catstruct(value, this.getFixedConstants());
         end
         
         function value = getOptions(this)
