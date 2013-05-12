@@ -19,7 +19,7 @@ classdef MySQLDatabase_Test < TestCase
     methods
         function setUp(this)
             %create database connection
-            dbConnectionParameters = config;
+            dbConnectionParameters = getConfig();
             this.database = edu.stanford.covert.db.MySQLDatabase(...
                 dbConnectionParameters.hostName, 'test', 'test', 'test');
             this.database.setNullValue(0);

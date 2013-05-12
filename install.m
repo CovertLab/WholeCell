@@ -15,30 +15,15 @@ setWarnings()
 setPath();
 
 %% configure stored simulation results path
-dataFilePath = input(strrep(sprintf('Enter an absolute file path where simulated data will be stored [%s%soutput%srunSimulation]: ', pwd, filesep, filesep), '\','\\'), 's');
-if ~isdir(dataFilePath)
-    mkdir(dataFilePath);
+outputPath = input(strrep(sprintf('Enter an absolute file path where simulated data will be stored [%s%soutput%srunSimulation]: ', pwd, filesep, filesep), '\','\\'), 's');
+if ~isdir(outputPath)
+    mkdir(outputPath);
 end
-if isempty(dataFilePath)
-    dataFilePath = sprintf('%s%soutput%srunSimulation', pwd, filesep, filesep);
+if isempty(outputPath)
+    outputPath = sprintf('%s%soutput%srunSimulation', pwd, filesep, filesep);
 else
-    dataFilePath = absolutepath(dataFilePath);
+    outputPath = absolutepath(outputPath);
 end
-
-%edit stored simulation results configuration
-fid = fopen('src/+edu/+stanford/+covert/+cell/+sim/+util/SimulationDiskUtil.m', 'r');
-str = [];
-while ~feof(fid)
-    str = [str fgetl(fid) sprintf('\n')]; %#ok<AGROW>
-end
-fclose(fid);
-
-str = strrep(str, '% value = ''/absolute_path/to/output/directory'';', ...
-    sprintf('value = ''%s'';', strrep(dataFilePath, '''', '''''')));
-
-fid = fopen('src/+edu/+stanford/+covert/+cell/+sim/+util/SimulationDiskUtil.m', 'w');
-fwrite(fid, str);
-fclose(fid);
 
 %% set server configuration
 reply = ' ';
@@ -56,17 +41,18 @@ userName = input('Enter knowledge base username: ', 's');
 password = input('Enter knowledge base password: ', 's');
 
 %edit knowledge base configuration
-fid = fopen('config.m', 'w');
-fprintf(fid, 'function dbConnectionParameters = config()\n');
-fprintf(fid, '%%CONFIG Returns configuration values.\n');
+fid = fopen('getConfig.m', 'w');
+fprintf(fid, 'function config = getConfig()\n');
+fprintf(fid, '%%GETCONFIG Returns configuration values.\n');
 fprintf(fid, '%%\n');
 fprintf(fid, '%% Author: Jonathan Karr, jkarr@stanford.edu\n');
 fprintf(fid, '%% Affilitation: Covert Lab, Department of Bioengineering, Stanford University\n');
 fprintf(fid, '%% Last updated: 9/21/2010\n');
 fprintf(fid, '\n');
 fprintf(fid, '%% knowledgebase\n');
-fprintf(fid, 'dbConnectionParameters.hostName = ''%s'';\n', strrep(hostName, '''', ''''''));
-fprintf(fid, 'dbConnectionParameters.schema   = ''%s'';\n', strrep(schema, '''', ''''''));
-fprintf(fid, 'dbConnectionParameters.userName = ''%s'';\n', strrep(userName, '''', ''''''));
-fprintf(fid, 'dbConnectionParameters.password = ''%s'';\n', strrep(password, '''', ''''''));
+fprintf(fid, 'config.hostName = ''%s'';\n', strrep(hostName, '''', ''''''));
+fprintf(fid, 'config.schema   = ''%s'';\n', strrep(schema, '''', ''''''));
+fprintf(fid, 'config.userName = ''%s'';\n', strrep(userName, '''', ''''''));
+fprintf(fid, 'config.password = ''%s'';\n', strrep(password, '''', ''''''));
+fprintf(fid, 'config.outputPath = ''%s'';\n', strrep(outputPath, '''', ''''''));
 fclose(fid);

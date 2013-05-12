@@ -45,7 +45,7 @@ classdef FlipbookAnimation < edu.stanford.covert.cell.sim.analysis.Animation
             g = sim.gene;
             
             %% metabolic map
-            dbConnectionParameters = config();
+            dbConnectionParameters = getConfig();
             database = edu.stanford.covert.db.MySQLDatabase(dbConnectionParameters);
             database.setNullValue(0);
             

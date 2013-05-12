@@ -294,33 +294,8 @@ classdef SimulationDiskUtil
         end
         
         function value = getBaseDir()
-            [r, host] = system('hostname');
-
-            if r ~= 0
-                warning('WholeCell:warning:network', 'Could not determine host name');
-                value = '';
-                return;
-            end
-            
-            host = deblank(host);
-            switch host
-                % Edit as appropriate (add jayodita and markus)
-                case 'hydra'
-                    value = '/covertlab/home/projects/WholeCell/simulation/output/runSimulation';
-                case 'silico'
-                    value = '/covertlab/home/projects/WholeCell/simulation/output/runSimulation';
-                case 'covertlab-jkarr'
-                    value = 'z:\projects\WholeCell\simulation\output\runSimulation';
-                otherwise
-                    if strcmp(computer, 'GLNXA64')
-                        % Probably the cluster
-                        value = '/home/projects/WholeCell/simulation/output/runSimulation';
-                    else
-                        % Assume a PC with the correct Z drive mapping
-                        value = 'z:\projects\WholeCell\simulation\output\runSimulation';
-                        warning('WholeCell:warning:network', 'Assuming simulation output is in %s', value);
-                    end
-            end
+            config = getConfig();
+            value = config.outputPath;
         end
         
         function value = getSimulationIndex(simDirAbs)

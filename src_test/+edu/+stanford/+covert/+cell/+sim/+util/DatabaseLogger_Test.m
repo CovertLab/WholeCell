@@ -24,7 +24,7 @@ classdef DatabaseLogger_Test < TestCase
         function testLogging(this)
             import edu.stanford.covert.cell.sim.util.DatabaseLogger;
             
-            dbConnectionParameters = config;
+            dbConnectionParameters = getConfig();
             database = edu.stanford.covert.db.MySQLDatabase(dbConnectionParameters);
             knowledgeBaseWID = edu.stanford.covert.cell.kb.KnowledgeBaseUtil.selectLatestKnowledgeBase(database);
             
@@ -160,7 +160,7 @@ classdef DatabaseLogger_Test < TestCase
             import edu.stanford.covert.cell.sim.util.DatabaseLogger;
             
             %setup
-            dbConnectionParameters = config;
+            dbConnectionParameters = getConfig();
             database = edu.stanford.covert.db.MySQLDatabase(dbConnectionParameters);
             knowledgeBaseWID = edu.stanford.covert.cell.kb.KnowledgeBaseUtil.selectLatestKnowledgeBase(database);
             

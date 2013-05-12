@@ -1,0 +1,18 @@
+#Temporary files
+*.asv
+*~
+
+#output
+bin/*
+doc/m2html/*
+doc/doxygen/*
+output/runAnalysisTests/*
+output/runCoverageTests/*
+output/runLargeTests/*
+output/runMediumTests/*
+output/runMediumDNATests/*
+output/runMediumProteinTests/*
+output/runSimulation/*
+output/runSimulationTests/*
+output/runSmallTests/*
+tmp/*

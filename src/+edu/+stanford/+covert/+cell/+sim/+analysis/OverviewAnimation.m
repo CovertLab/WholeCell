@@ -37,7 +37,7 @@ classdef OverviewAnimation < edu.stanford.covert.cell.sim.analysis.Animation
             pc = sim.state('ProteinComplex');
             
             %% metabolic map
-            dbConnectionParameters = config();
+            dbConnectionParameters = getConfig();
             database = edu.stanford.covert.db.MySQLDatabase(dbConnectionParameters);
             database.setNullValue(0);
             

@@ -22,7 +22,9 @@ if ischar(directoryOrWID)
     directoryOrWID = SimulationDiskUtil.getSimulation(directoryOrWID);
     metadata = DiskLogger.loadMetadata(directoryOrWID);
 else
-    if ~exist('database', 'var'); database = MySQLDatabase(config); end
+    if ~exist('database', 'var')
+        database = MySQLDatabase(getConfig());
+    end
     metadata = DatabaseLogger.loadMetadata(database, directoryOrWID);
 end
 
@@ -47,7 +49,7 @@ if ischar(directoryOrWID)
         DiskLogger.load(directoryOrWID, '-independent', timeInit, timeFin, downsampleStepSec, downsampleType);
 else
     if ~exist('database', 'var')
-        database = MySQLDatabase(config);
+        database = MySQLDatabase(getConfig());
     end
     if nargin > 1
         warning('WholeCell:warning', 'Additional options ignored');

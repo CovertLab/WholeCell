@@ -315,7 +315,7 @@ classdef SimulationRunner < handle
             
             %setup database logger
             if this.logToDb
-                databaseLogger = DatabaseLogger(MySQLDatabase(config), 1000);
+                databaseLogger = DatabaseLogger(MySQLDatabase(getConfig()), 1000);
                 databaseLogger.addMetadata(data.metadata);
                 loggers = [loggers; {databaseLogger}];
             end
@@ -372,7 +372,7 @@ classdef SimulationRunner < handle
             
             if ~this.useCachedKb || ~exist(this.kbCache, 'file')
                 % connect to database
-                dbConnectionParameters = config();
+                dbConnectionParameters = getConfig();
                 database = MySQLDatabase(dbConnectionParameters);
                 
                 % construct latest knowledge base from database

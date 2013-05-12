@@ -4523,7 +4523,7 @@ classdef Figures34
             if exist([outDirectory 'metabolicMap.mat'], 'file')
                 load([outDirectory 'metabolicMap.mat'])
             else
-                dbConnectionParameters = config();
+                dbConnectionParameters = getConfig();
                 database = MySQLDatabase(dbConnectionParameters);
                 database.setNullValue(0);
                 

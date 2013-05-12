@@ -11,7 +11,7 @@ classdef Simulation_KnowledgeBase_Test < TestCase
         end
         
         function testInitializationFromKnowledgeBase(~)
-            dbConnectionParameters = config;
+            dbConnectionParameters = getConfig();
             database = edu.stanford.covert.db.MySQLDatabase(dbConnectionParameters);
             kbWID = edu.stanford.covert.cell.kb.KnowledgeBaseUtil.selectLatestKnowledgeBase(database);
             kb = edu.stanford.covert.cell.kb.KnowledgeBase(database, kbWID);

@@ -9,7 +9,7 @@ classdef KnowledgeBaseUtil_Test < TestCase
         end
         
         function setUp(this)
-            this.database = edu.stanford.covert.db.MySQLDatabase(config);
+            this.database = edu.stanford.covert.db.MySQLDatabase(getConfig());
         end
         
         function tearDown(this)
