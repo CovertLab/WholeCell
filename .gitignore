@@ -6,6 +6,7 @@
 bin/*
 doc/m2html/*
 doc/doxygen/*
+output/*
 output/runAnalysisTests/*
 output/runCoverageTests/*
 output/runLargeTests/*

@@ -167,7 +167,7 @@ classdef Simulation < handle
                 values = cell2struct(varargin(2:2:end), varargin(1:2:end-1), 2);
             end
             
-            this.applyOptions(values)
+            this.applyOptions(values);
             this.applyParameters(values);
             this.applyFittedConstants(values);
             this.applyFixedConstants(values);
