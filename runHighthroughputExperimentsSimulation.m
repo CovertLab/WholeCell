@@ -60,10 +60,10 @@ import edu.stanford.covert.cell.sim.util.SummaryLogger;
 %process arguments
 ip = inputParser();
 
-ip.addParamValue('seed', 0, @(x) isnumeric(x) && ceil(x) == x);
+ip.addParamValue('seed', 0);
 ip.addParamValue('parameterVals', [], @(x) isstruct(x));  
 ip.addParamValue('parameterValsPath', '', @(x) exist(x, 'file'));  
-ip.addParamValue('outPath', '');  
+ip.addParamValue('outPath', '', @(x) ischar(x));  
 
 ip.parse(varargin{:});
 
@@ -71,6 +71,11 @@ seed              = ip.Results.seed;
 parameterVals     = ip.Results.parameterVals;
 parameterValsPath = ip.Results.parameterValsPath;
 outPath           = ip.Results.outPath;
+
+if ischar(seed)
+    seed = str2double(seed);
+end
+validateattributes(seed, {'numeric'}, {'integer'});
 
 %load simulation
 sim = CachedSimulationObjectUtil.load();
