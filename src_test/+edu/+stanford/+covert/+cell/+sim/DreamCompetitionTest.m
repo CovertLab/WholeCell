@@ -16,13 +16,13 @@ classdef DreamCompetitionTest < TestCase
     %tests
     methods
         %Run simulation using struct of parameter values
-        function test_runHighthroughputExperimentsSimulation1(~)
+        function test_simulateHighthroughputExperiments1(~)
             sim = edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil.load();
             
             parameterVals = sim.getAllParameters(); %get default parameters
             parameterVals.lengthSec = 10;          %override defaults
             
-            runHighthroughputExperimentsSimulation(...
+            simulateHighthroughputExperiments(...
                 'seed', 1, ...
                 'parameterVals', parameterVals, ...
                 'outPath', 'output/dream-sim-1.mat' ...
@@ -33,7 +33,7 @@ classdef DreamCompetitionTest < TestCase
         end
         
         %Run simulation using mat file of parameter values
-        function test_runHighthroughputExperimentsSimulation2(~)
+        function test_simulateHighthroughputExperiments2(~)
             sim = edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil.load();
             
             parameterVals = sim.getAllParameters(); %get default parameters
@@ -42,7 +42,7 @@ classdef DreamCompetitionTest < TestCase
             parameterValsPath = 'output/dream-sim-2-parameters.mat';
             save(parameterValsPath, '-struct', 'parameterVals');
             
-            runHighthroughputExperimentsSimulation(...
+            simulateHighthroughputExperiments(...
                 'seed', 1, ...
                 'parameterValsPath', parameterValsPath, ...
                 'outPath', 'output/dream-sim-2.mat' ...
