@@ -293,19 +293,5 @@ end
 %% Extract state
 state_daughters = struct();
 for i = 1:numel(daughters)
-    for j = 1:numel(daughters{i}.states)
-        s = daughters{i}.states{j};
-        sid = s.wholeCellModelID(7:end);
-        state_daughters(i).(sid) = struct();
-        
-        for k = 1:numel(s.stateNames)
-            state_daughters(i).(sid).(s.stateNames{k}) = ...
-                s.(s.stateNames{k});
-        end
-        
-        for k = 1:numel(s.dependentStateNames)
-            state_daughters(i).(sid).(s.dependentStateNames{k}) = ...
-                s.(s.dependentStateNames{k});
-        end
-    end
+    state_daughters(i) = daughters{i}.getTimeCourses();
 end

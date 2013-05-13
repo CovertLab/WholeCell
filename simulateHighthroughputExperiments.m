@@ -9,8 +9,11 @@
 %   parameters. Initialize using the getAllParameters method of the
 %   simulation class to get default parameter values. Overwrite struct
 %   elements to set parameter values.
-% - parameterValsPath [.mat file path]: .mat file path for stored struct of
-%   parameter values
+% - parameterValsPath [.mat/.xml file path]: .mat file path for stored
+%   struct of parameter values or .xml file describing parameter values.
+%   Use http://wholecell.stanford.edu/simulation/runSimulations.php to
+%   generate XML file.
+% - initialConditions [.
 % - outPath [.mat file path]: Desired file path for simulated in silico
 %   experimental data (see HighthroughputExperimentsLogger for information
 %   about simulated data)
@@ -52,50 +55,86 @@
 % Last updated: 5/12/2013
 function simulateHighthroughputExperiments(varargin)
 
-%import classes
+%% import classes
 import edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil;
+import edu.stanford.covert.cell.sim.util.ConditionSet;
 import edu.stanford.covert.cell.sim.util.HighthroughputExperimentsLogger;
 import edu.stanford.covert.cell.sim.util.SummaryLogger;
+import edu.stanford.covert.util.StructUtil;
 
-%process arguments
+%% process arguments
 ip = inputParser();
 
-ip.addParamValue('seed', 0);
+ip.addParamValue('seed', []);
+ip.addParamValue('geneticKnockouts', [], @(x) ischar(x) || iscell(x));
 ip.addParamValue('parameterVals', [], @(x) isstruct(x));
 ip.addParamValue('parameterValsPath', '', @(x) exist(x, 'file'));
 ip.addParamValue('outPath', '', @(x) ischar(x));
+ip.addParamValue('initialConditions', struct(), @(x) isstruct(x));
+ip.addParamValue('initialConditionsPath', '', @(x) exist(x, 'file'));
 
 ip.parse(varargin{:});
 
-seed              = ip.Results.seed;
-parameterVals     = ip.Results.parameterVals;
-parameterValsPath = ip.Results.parameterValsPath;
-outPath           = ip.Results.outPath;
+seed                  = ip.Results.seed;
+geneticKnockouts      = ip.Results.geneticKnockouts;
+parameterVals         = ip.Results.parameterVals;
+parameterValsPath     = ip.Results.parameterValsPath;
+initialConditions     = ip.Results.initialConditions;
+initialConditionsPath = ip.Results.initialConditionsPath;
+outPath               = ip.Results.outPath;
 
 if ischar(seed)
     seed = str2double(seed);
+    validateattributes(seed, {'numeric'}, {'integer'});
 end
-validateattributes(seed, {'numeric'}, {'integer'});
 
-%load simulation
+if ischar(geneticKnockouts)
+    geneticKnockouts = {geneticKnockouts};
+end
+
+if numel(fields(initialConditions)) == 0 && ~isempty(initialConditionsPath)
+    initialConditions = load(initialConditionsPath);
+end
+
+%% load simulation
 sim = CachedSimulationObjectUtil.load();
 
-%seed random number generator
-sim.applyOptions('seed', seed);
-
-%set parameter values
+%% set parameter values
+%parameters
 if ~isempty(parameterVals)
     sim.applyAllParameters(parameterVals);
 elseif ~isempty(parameterValsPath)
-    parameterVals = load(parameterValsPath);
+    [~, ~, ext] = fileparts(parameterValsPath);
+    switch ext
+        case '.mat'
+            parameterVals = load(parameterValsPath);
+        case '.xml'
+            tmp = ConditionSet.parseConditionSet(sim, parameterValsPath);
+            parameterVals = struct();
+            parameterVals = StructUtil.catstruct(parameterVals, tmp.options);
+            parameterVals = StructUtil.catstruct(parameterVals, tmp.perturbations);
+            parameterVals = StructUtil.catstruct(parameterVals, tmp.parameters);
+        otherwise
+            throw(MException('simulateHighthroughputExperiments:invalidFileFormat', 'Invalid input file format "%s"', ext));
+    end
     sim.applyAllParameters(parameterVals);
 end
 
-%setup loggers
+%knockout perturbations
+if iscell(geneticKnockouts)
+    sim.applyOptions('geneticKnockouts', geneticKnockouts);
+end
+
+%seed random number generator
+if ~isempty(seed)
+    sim.applyOptions('seed', seed);
+end
+
+%% setup loggers
 loggers = {SummaryLogger(1, 1)};
 if ~isempty(outPath)
     loggers = [loggers; {HighthroughputExperimentsLogger(outPath)}];
 end
 
-%run
-sim.run(loggers);
+%% run
+sim.run(initialConditions, loggers);

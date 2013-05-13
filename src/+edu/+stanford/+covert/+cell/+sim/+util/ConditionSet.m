@@ -38,6 +38,8 @@ classdef ConditionSet
         
         function generateConditionSet(sim, metadata, conditions, fileName)
             import edu.stanford.covert.cell.sim.constant.Condition;
+            import edu.stanford.covert.cell.sim.util.ConditionSet;
+            
             comp = sim.compartment;
             stim = sim.state('Stimulus');
             m = sim.state('Metabolite');
@@ -81,7 +83,7 @@ classdef ConditionSet
                     fields = setdiff(fieldnames(conditions(i).options), {'states', 'processes'});
                     for j = 1:numel(fields)
                         fprintf(fid, '            <option name="%s" value="%s"/>\n', ...
-                            fields{j}, edu.stanford.covert.io.jsonFormat(conditions(i).options(fields{j})));
+                            fields{j}, ConditionSet.jsonFormat(conditions(i).options.(fields{j})));
                     end
                     
                     %states
@@ -92,7 +94,7 @@ classdef ConditionSet
                             for k = 1:numel(subfields)
                                 fprintf(fid, '            <option state="%s" name="%s" value="%s"/>\n', ...
                                     fields{j}, subfields{k}, ...
-                                    edu.stanford.covert.io.jsonFormat(conditions(i).options.states.(fields{j}).(subfields{k})));
+                                    ConditionSet.jsonFormat(conditions(i).options.states.(fields{j}).(subfields{k})));
                             end
                         end
                     end
@@ -105,7 +107,7 @@ classdef ConditionSet
                             for k = 1:numel(subfields)
                                 fprintf(fid, '            <option process="%s" name="%s" value="%s"/>\n', ...
                                     fields{j}, subfields{k}, ...
-                                    edu.stanford.covert.io.jsonFormat(conditions(i).options.processes.(fields{j}).(subfields{k})));
+                                    ConditionSet.jsonFormat(conditions(i).options.processes.(fields{j}).(subfields{k})));
                             end
                         end
                     end
@@ -125,16 +127,15 @@ classdef ConditionSet
                         for j = 1:numel(fields)
                             subfields = fieldnames(conditions(i).parameters.states.(fields{j}));
                             for k = 1:numel(subfields)
-                                if isscalar(conditions(i).parameters.states.(fields{j}).(subfields{k}))
+                                if numel(conditions(i).parameters.states.(fields{j}).(subfields{k})) <= 1 || ischar(conditions(i).parameters.states.(fields{j}).(subfields{k}))
                                     fprintf(fid, '            <parameter state="%s" name="%s" value="%s"/>\n', ...
                                         fields{j}, subfields{k}, ...
-                                        edu.stanford.covert.io.jsonFormat(conditions(i).parameters.states.(fields{j}).(subfields{k})));
+                                        ConditionSet.jsonFormat(conditions(i).parameters.states.(fields{j}).(subfields{k})));
                                 else
                                     for l = 1:numel(conditions(i).parameters.states.(fields{j}).(subfields{k}))
-                                        index = '';
-                                        fprintf(fid, '            <parameter state="%s" name="%s" index="%s" value="%s"/>\n', ...
-                                            fields{j}, subfields{k}, index, ...
-                                            edu.stanford.covert.io.jsonFormat(conditions(i).parameters.states.(fields{j}).(subfields{k})));
+                                        fprintf(fid, '            <parameter state="%s" name="%s" index="%d" value="%s"/>\n', ...
+                                            fields{j}, subfields{k}, l, ...
+                                            ConditionSet.jsonFormat(conditions(i).parameters.states.(fields{j}).(subfields{k})(l) ));
                                     end
                                 end
                             end
@@ -147,16 +148,15 @@ classdef ConditionSet
                         for j = 1:numel(fields)
                             subfields = fieldnames(conditions(i).parameters.processes.(fields{j}));
                             for k = 1:numel(subfields)
-                                if isscalar(conditions(i).parameters.processes.(fields{j}).(subfields{k}))
+                                if numel(conditions(i).parameters.processes.(fields{j}).(subfields{k})) <= 1 || ischar(conditions(i).parameters.processes.(fields{j}).(subfields{k}))
                                     fprintf(fid, '            <parameter process="%s" name="%s" value="%s"/>\n', ...
                                         fields{j}, subfields{k}, ...
-                                        edu.stanford.covert.io.jsonFormat(conditions(i).parameters.processes.(fields{j}).(subfields{k})));
+                                        ConditionSet.jsonFormat(conditions(i).parameters.processes.(fields{j}).(subfields{k})));
                                 else
                                     for l = 1:numel(conditions(i).parameters.processes.(fields{j}).(subfields{k}))
-                                        index='';
-                                        fprintf(fid, '            <parameter process="%s" name="%s" index="%s" value="%s"/>\n', ...
-                                            fields{j}, subfields{k}, index, ...
-                                            edu.stanford.covert.io.jsonFormat(conditions(i).parameters.processes.(fields{j}).(subfields{k})));
+                                        fprintf(fid, '            <parameter process="%s" name="%s" index="%d" value="%s"/>\n', ...
+                                            fields{j}, subfields{k}, l, ...
+                                            ConditionSet.jsonFormat(conditions(i).parameters.processes.(fields{j}).(subfields{k})(l) ));
                                     end
                                 end
                             end
@@ -224,6 +224,7 @@ classdef ConditionSet
     methods (Static)
         function data = parseConditionSet(sim, fileName)
             import edu.stanford.covert.cell.sim.constant.Condition;
+            import edu.stanford.covert.cell.sim.util.ConditionSet;
             
             data = struct(...
                 'metadata', struct(...
@@ -276,11 +277,7 @@ classdef ConditionSet
                 name = char(option.getAttribute('name'));
                 state = char(option.getAttribute('state'));
                 process = char(option.getAttribute('process'));
-                value = char(option.getAttribute('value'));
-                [tmp, status] = str2num(value); %#ok<*ST2NM>
-                if status
-                    value = tmp;
-                end
+                value = ConditionSet.jsonParse(char(option.getAttribute('value')));
                 
                 if ~isempty(state)
                     data.options.states.(state).(name) = value;
@@ -300,32 +297,44 @@ classdef ConditionSet
                 indexName = char(parameter.getAttribute('index'));
                 state = strrep(char(parameter.getAttribute('state')), 'State_', '');
                 process = strrep(char(parameter.getAttribute('process')), 'Process_', '');
-                value = char(parameter.getAttribute('value'));
-                [tmp, status] = str2num(value);
-                if status
-                    value = tmp;
-                end
-                
+                value = ConditionSet.jsonParse(char(parameter.getAttribute('value')));
+                                
                 if ~isempty(state)
                     if isempty(indexName)
                         data.parameters.states.(state).(name) = value;
                     else
-                        index = sim.state(state).(indexName);
-                        data.parameters.states.(state).(name)(index) = value;
+                        index = str2double(indexName);
+                        if isnan(index)
+                            index = sim.state(state).(indexName);
+                            data.parameters.states.(state).(name)(index) = value;
+                        else
+                            data.parameters.states.(state).(name)(index, 1) = value;
+                        end
+                        
                     end
                 elseif ~isempty(process)
                     if isempty(indexName)
                         data.parameters.processes.(process).(name) = value;
                     else
-                        index = sim.process(process).(indexName);
-                        data.parameters.processes.(process).(name)(index) = value;
+                        index = str2double(indexName);
+                        if isnan(indexName)
+                            index = sim.process(process).(indexName);
+                            data.parameters.processes.(process).(name)(index) = value;
+                        else
+                            data.parameters.processes.(process).(name)(index, 1) = value;
+                        end                        
                     end
                 else
                     if isempty(indexName)
                         data.parameters.(name) = value;
                     else
-                        index = sim.(indexName);
-                        data.parameters.(name)(index) = value;
+                        index = str2double(indexName);
+                        if isnan(indexName)
+                            index = sim.(indexName);
+                            data.parameters.(name)(index) = value;
+                        else
+                            data.parameters.(name)(index, 1) = value;
+                        end                        
                     end
                 end
             end
@@ -338,7 +347,7 @@ classdef ConditionSet
             nComp = sim.compartment.count;
             
             perturbations = xml.getElementsByTagName('perturbation');
-            for i=1:perturbations.getLength
+            for i = 1:perturbations.getLength
                 perturbation = perturbations.item(i-1);
                 
                 type = char(perturbation.getAttribute('type'));
@@ -372,7 +381,7 @@ classdef ConditionSet
                             data.perturbations.media;
                             component compartment value initialTime finalTime sub2ind([nMet nComp], component, compartment)];
                 end
-            end           
+            end
         end
         
         function validateConditionSet(xml)
@@ -668,6 +677,24 @@ classdef ConditionSet
                     (~strcmp(type, 'geneticKnockout') && (~hasCompartment || ~hasValue))
                 throw(MException('ConditionSet:invalidXML','invalid XML'));
             end
+        end
+        
+        function val = jsonFormat(data)
+            val = edu.stanford.covert.io.jsonFormat(data);
+            val = strrep(val, '&', '&amp;');
+            val = strrep(val, '"', '&quot;');
+            val = strrep(val, '''', '&apos;');
+            val = strrep(val, '<', '&lt;');
+            val = strrep(val, '>', '&gt;');
+        end
+        
+        function data = jsonParse(val)
+            val = strrep(val, '&gt;', '>');
+            val = strrep(val, '&lt;', '<');
+            val = strrep(val, '&apos;', '''');
+            val = strrep(val, '&quot;', '"');
+            val = strrep(val, '&amp;', '&');
+            data = edu.stanford.covert.io.jsonParse(val);
         end
     end
 end

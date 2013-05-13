@@ -32,15 +32,15 @@ this.allocateMemoryForState(1);
 
 %initialize state
 this.initializeState();
-if ~isempty(ic) && numel(fieldnames(ic)) > 0
+if isstruct(ic) && isfield(ic, 'states') && numel(fieldnames(ic.states)) > 0
     %override default initial conditions
-    fields = fieldnames(ic);
+    fields = fieldnames(ic.states);
     for i = 1:numel(fields)
-        s = this.state(regexprep(fields{i}, '^Process_', ''));
+        s = this.state(regexprep(fields{i}, '^State_', ''));
         
-        subfields = fieldnames(ic.(fields{i}));
+        subfields = fieldnames(ic.states.(fields{i}));
         for j = 1:numel(subfields)
-            tmp = ic.(fields{i}).(subfields{j});
+            tmp = ic.states.(fields{i}).(subfields{j});
             if isnumeric(tmp)
                 s.(subfields{j})(~isnan(tmp)) = tmp(~isnan(tmp));
             else

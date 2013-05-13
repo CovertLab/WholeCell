@@ -127,6 +127,10 @@ classdef CellState < handle
         function setTimeCourses(this, value)
             this.setFromStruct(value, this.stateNames);
         end
+        
+        function value = getDependentTimeCourses(this)
+            value = this.getAsStruct(this.dependentStateNames);
+        end
     end
     
     methods (Access = private)

@@ -504,6 +504,10 @@ classdef Simulation < handle
             value = this.getAsStruct('timeCourses', {}, true, false);
         end
         
+        function value = getDependentTimeCourses(this)
+            value = this.getAsStruct('dependentTimeCourses', {}, true, false);
+        end
+        
         function value = getRandStreamStates(this)
             value = struct('simulation', [], 'states', struct(), 'processes', struct());
             value.simulation = this.randStream.state;
