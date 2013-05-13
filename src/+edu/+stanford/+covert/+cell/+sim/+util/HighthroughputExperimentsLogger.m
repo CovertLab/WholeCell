@@ -10,12 +10,21 @@
 %   - Cell cycle length (s)
 % - Averages
 %   - Metabolite concentrations (M)
-%   - DNA-seq
-%   - RNA-seq
-%   - ChIP-seq
+%   - DNA-seq (freq)
+%   - RNA-seq (freq)
+%   - ChIP-seq (freq)
 %   - RNA expression array (M)
 %   - Protein expression array (M)
 %   - Metabolic reaction fluxes (rxn/s/gDCW)
+%
+% Input:
+% - outPath [.mat file path]: file path where simulated data should be
+%   saved. 
+%
+% Output
+% - .mat file containing a struct of the simulated data. .mat is saved at
+%   the location specified by outPath. Row and column labels are returned
+%   in the "labels" field of the returned struct.
 %
 % Author: Jonathan Karr, jkarr@stanford.edu
 % Affilitation: Covert Lab, Department of Bioengineering, Stanford University
