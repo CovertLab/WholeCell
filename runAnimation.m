@@ -16,7 +16,7 @@ if nargin >= 1
     simBatchId = varargin{1};
 end
 if nargin >= 2
-	movieSubFolder = varargin{2}
+	movieSubFolder = varargin{2};
 else 
 	movieSubFolder = 'movie';
 end
