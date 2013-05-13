@@ -11,14 +11,14 @@
 %   elements to set parameter values.
 % - parameterValsPath [.mat file path]: .mat file path for stored struct of
 %   parameter values
-% - outDir [.mat file path]: Desired file path for simulated in silico
+% - outPath [.mat file path]: Desired file path for simulated in silico
 %   experimental data (see HighthroughputExperimentsLogger for information
 %   about simulated data)
 %
 % Output
-% - If outDir is set, saves simulated in silico experimental data (see
+% - If outPath is set, saves simulated in silico experimental data (see
 %   HighthroughputExperimentsLogger for information about simulated data)
-%   to path specified by outDir
+%   to path specified by outPath
 %
 % Examples:
 %   %Run simulation using struct of parameter values
@@ -61,9 +61,9 @@ import edu.stanford.covert.cell.sim.util.SummaryLogger;
 ip = inputParser();
 
 ip.addParamValue('seed', 0);
-ip.addParamValue('parameterVals', [], @(x) isstruct(x));  
-ip.addParamValue('parameterValsPath', '', @(x) exist(x, 'file'));  
-ip.addParamValue('outPath', '', @(x) ischar(x));  
+ip.addParamValue('parameterVals', [], @(x) isstruct(x));
+ip.addParamValue('parameterValsPath', '', @(x) exist(x, 'file'));
+ip.addParamValue('outPath', '', @(x) ischar(x));
 
 ip.parse(varargin{:});
 

@@ -39,7 +39,7 @@ classdef DreamCompetitionTest < TestCase
             parameterVals = sim.getAllParameters(); %get default parameters
             parameterVals.lengthSec = 5;          %override defaults
             
-            parameterValsPath = 'output/dream-sim-2-parameters.mat';
+            parameterValsPath = 'output/dream-sim-parameters-2.mat';
             save(parameterValsPath, '-struct', 'parameterVals');
             
             simulateHighthroughputExperiments(...
@@ -50,6 +50,29 @@ classdef DreamCompetitionTest < TestCase
             
             experimentalData = load('output/dream-sim-2.mat');
             assertEqual(0:5, experimentalData.time);
+        end
+        
+        function test_averageHighthroughputExperiments(~)
+            %simulate
+            sim = edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil.load();
+            parameterVals = sim.getAllParameters(); %get default parameters
+            for i = 1:2
+                parameterVals.lengthSec = i * 10; %override defaults
+                simulateHighthroughputExperiments(...
+                    'seed', i, ...
+                    'parameterVals', parameterVals, ...
+                    'outPath', sprintf('output/dream-sim-%d.mat', i) ...
+                    );
+            end
+            
+            %average
+            averageHighthroughputExperiments(...
+                'inPathPattern', 'output/dream-sim-*.mat', ...
+                'outPath', 'output/dream-sim-avg.mat' ...
+                );
+            
+            %assert
+            assertEqual(2, exist('output/dream-sim-avg.mat', 'file'));
         end
     end
 end

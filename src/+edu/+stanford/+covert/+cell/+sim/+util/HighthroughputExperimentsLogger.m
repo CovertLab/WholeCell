@@ -19,7 +19,7 @@
 %
 % Input:
 % - outPath [.mat file path]: file path where simulated data should be
-%   saved. 
+%   saved.
 %
 % Output
 % - .mat file containing a struct of the simulated data. .mat is saved at
@@ -37,7 +37,7 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
     
     %indices, labels
     properties
-        sIdx      %indices of states        
+        sIdx      %indices of states
         labels    %row, col labels
         
         idxsDnaBoundMon %DNA-bound monomer mapping
@@ -368,7 +368,7 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
                 if any(this.tmpChipSeqCpx(:, i))
                     tmp = sparse(cconv(full(this.tmpChipSeqCpx(:, i)), ones(chr.complexDNAFootprints(idxs(i)), 1), chr.sequenceLen));
                     this.tmpChipSeqCpx(:, i) = 0;
-                
+                    
                     monIdxs = find(protComp(:, i));
                     for j = 1:numel(monIdxs)
                         this.chipSeq(:, monIdxs(j)) = ...
@@ -407,6 +407,104 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
                 'labels',       this.labels ...
                 ); %#ok<NASGU>
             save(this.outPath, '-struct', 'data');
+        end
+    end
+    
+    methods (Static = true)
+        function [avgVals, labels] = average(inPathPattern)
+            %get matching files
+            [inPathBase, ~, ~] = fileparts(inPathPattern);
+            files = dir(inPathPattern);
+            
+            %get longest simulation length
+            nTimeMax = 0;
+            isFilesSim = false(size(files));
+            for i = 1:numel(files)
+                tmpPath = fullfile(inPathBase, files(i).name);
+                matObj = matfile(tmpPath);
+                vars = whos(matObj);
+                if ~isequal({vars.name}', {
+                        'cellCycleLen'; 'chipSeq'; 'dnaSeq'; 'growth';
+                        'labels'; 'mass'; 'metConcs'; 'protArray';
+                        'repInitTime'; 'repTermTime'
+                        'rnaArray'; 'rnaSeq'; 'rxnFluxes'; 'time'; 'volume'
+                        })
+                    continue;
+                end
+                if size(matObj.growth, 1) > 1
+                    continue;
+                end
+                
+                isFilesSim(i) = true;
+                nTimeMax = max(nTimeMax, numel(matObj.time));
+            end
+            files = files(isFilesSim);
+            
+            %prep row labels
+            sim = edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil.load();
+            g = sim.gene;
+            met = sim.state('Metabolite');
+            chr = sim.state('Chromosome');
+            mr  = sim.state('MetabolicReaction');
+            
+            labels = struct('rows', struct(), 'cols', struct());
+            labels.rows = struct();
+            labels.rows.metConcs  = met.wholeCellModelIDs;
+            labels.rows.rnaArray  = g.wholeCellModelIDs;
+            labels.rows.protArray = g.wholeCellModelIDs(g.mRNAIndexs);
+            labels.rows.rxnFluxes = mr.reactionWholeCellModelIDs;
+            labels.cols.chipSeq   = g.wholeCellModelIDs(g.mRNAIndexs);
+            
+            %initialize
+            nSim = numel(files);
+            
+            avgVals = struct();
+            
+            avgVals.growth = NaN(nSim, nTimeMax);
+            avgVals.mass   = NaN(nSim, nTimeMax);
+            avgVals.volume = NaN(nSim, nTimeMax);
+            
+            avgVals.repInitTime  = NaN(nSim, 1);
+            avgVals.repTermTime  = NaN(nSim, 1);
+            avgVals.cellCycleLen = NaN(nSim, 1);
+            
+            avgVals.metConcs  = [];
+            avgVals.dnaSeq    = [];
+            avgVals.rnaSeq    = [];
+            avgVals.chipSeq   = [];
+            avgVals.rnaArray  = [];
+            avgVals.protArray = [];
+            avgVals.rxnFluxes = [];
+            
+            avgVals.metConcs  = zeros(numel(labels.rows.metConcs), 1);
+            avgVals.dnaSeq    = zeros(chr.sequenceLen, 1);
+            avgVals.rnaSeq    = zeros(chr.sequenceLen, 1);
+            avgVals.chipSeq   = sparse(chr.sequenceLen, numel(labels.cols.chipSeq));
+            avgVals.rnaArray  = zeros(numel(labels.rows.rnaArray), 1);
+            avgVals.protArray = zeros(numel(labels.rows.protArray), 1);
+            avgVals.rxnFluxes = zeros(numel(labels.rows.rxnFluxes), 1);
+            
+            %average
+            for i = 1:nSim
+                vals = load(fullfile(inPathBase, files(i).name));
+                nTime = numel(vals.time);
+                
+                avgVals.growth(i, 1:nTime) = vals.growth;
+                avgVals.mass(  i, 1:nTime) = vals.mass;
+                avgVals.volume(i, 1:nTime) = vals.volume;
+                
+                avgVals.repInitTime( i, 1) = vals.repInitTime;
+                avgVals.repTermTime( i, 1) = vals.repTermTime;
+                avgVals.cellCycleLen(i, 1) = vals.cellCycleLen;
+                
+                avgVals.metConcs  = 1 / nSim * vals.metConcs;
+                avgVals.dnaSeq    = 1 / nSim * vals.dnaSeq;
+                avgVals.rnaSeq    = 1 / nSim * vals.rnaSeq;
+                avgVals.chipSeq   = 1 / nSim * vals.chipSeq;
+                avgVals.rnaArray  = 1 / nSim * vals.rnaArray;
+                avgVals.protArray = 1 / nSim * vals.protArray;
+                avgVals.rxnFluxes = 1 / nSim * vals.rxnFluxes;
+            end
         end
     end
 end
