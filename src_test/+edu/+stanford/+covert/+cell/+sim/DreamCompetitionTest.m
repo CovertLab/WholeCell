@@ -13,7 +13,57 @@ classdef DreamCompetitionTest < TestCase
         end
     end
     
-    %tests
+    %test getting, setting parameters
+    methods
+        function test_getApplyAllParameters(~)
+            %import
+            import edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil;
+            
+            %load simulation object
+            sim = CachedSimulationObjectUtil.load();
+            
+            %set, get parameter values
+            sim.applyAllParameters(struct('lengthSec', 1));
+            assertEqual(1, sim.getAllParameters().lengthSec);
+            
+            sim.applyAllParameters(struct('processes', struct('Metabolism', struct('cellCycleLength', 1000))));
+            assertEqual(1000, sim.getAllParameters().processes.Metabolism.cellCycleLength);
+        end
+        
+        function test_getMetabolicReactionKinetics(~)
+            %import
+            import edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil;
+            
+            %load simulation object
+            sim = CachedSimulationObjectUtil.load();
+            met = sim.process('Metabolism');
+            
+            %get kinetics
+            kinetics = sim.getMetabolicReactionKinetics();
+            assertEqual(met.reactionWholeCellModelIDs, fields(kinetics));
+            assertEqual(met.enzymeBounds(met.reactionIndexs_fba, :), ...
+                met.fbaEnzymeBounds(met.fbaReactionIndexs_metabolicConversion, :));
+        end
+        
+        function test_setMetabolicReactionKinetics(~)
+            %import
+            import edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil;
+            
+            %load simulation object
+            sim = CachedSimulationObjectUtil.load();
+            met = sim.process('Metabolism');
+            
+            %set kinetics
+            rxnId = met.reactionWholeCellModelIDs{1};
+            kinetics.(rxnId).for = 1;
+            sim.setMetabolicReactionKinetics(kinetics);
+            assertEqual(kinetics.(rxnId).for, sim.getMetabolicReactionKinetics().(rxnId).for);
+            assertEqual(met.enzymeBounds(met.reactionIndexs_fba, :), ...
+                met.fbaEnzymeBounds(met.fbaReactionIndexs_metabolicConversion, :));
+        end
+    end
+    
+    %test in silico experiment logger
     methods
         %Run simulation using struct of parameter values
         function test_simulateHighthroughputExperiments1(~)
