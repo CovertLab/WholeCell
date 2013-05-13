@@ -357,6 +357,39 @@ classdef Simulation < handle
             this.setFromStruct(value, 'fixedConstants', {});
         end
         
+        function this = setMetabolicReactionKinetics(this, value)
+            %get handle to metabolism submodel
+            met = this.process('Metabolism');
+            if isempty(met)
+                if isempty(value)
+                    return;
+                else
+                    throw(MException('Simulation:error', 'Cannot set kinetic rates'));
+                end
+            end
+            
+            %set kinetics
+            rxnIds = fields(value);
+            [rxnTfs, rxnIdxs] = ismember(rxnIds, met.reactionWholeCellModelIDs);
+            if ~all(rxnTfs)
+                throw(MException('Simulation:error', 'Cannot set kinetics of undefined reactions:\n- %s', ...
+                    strjoin(sprintf('\n- '), rxnIdxs{~rxnTfs})));
+            end
+            
+            for i = 1:numel(rxnIds)
+                if isfield(value.(rxnIds{i}), 'rev')
+                    met.enzymeBounds(rxnIdxs(i), 1) = value.(rxnIds{i}).rev;
+                end
+                if isfield(value.(rxnIds{i}), 'for')
+                    met.enzymeBounds(rxnIdxs(i), 2) = value.(rxnIds{i}).for;
+                end
+            end
+            
+            %copy kinetics over to FBA setup
+            met.fbaEnzymeBounds(met.fbaReactionIndexs_metabolicConversion, :) = ...
+                met.enzymeBounds(met.reactionIndexs_fba, :);
+        end
+        
         function this = applyRandStreamStates(this, value)
             if size(value.simulation(:, 1), 2) > 1
                 warning('WholeCell:warning', 'Applying first rand stream state');
@@ -450,6 +483,21 @@ classdef Simulation < handle
         
         function value = getFixedConstants(this)
             value = this.getAsStruct('fixedConstants', {});
+        end
+        
+        function value = getMetabolicReactionKinetics(this)
+            met = this.process('Metabolism');
+            if isempty(met)
+                throw(MException('Simulation:error', 'No metabolism process. Cannot get kinetics.'))
+            end
+            
+            value = struct();
+            for i = 1:numel(met.reactionWholeCellModelIDs)
+                value.(met.reactionWholeCellModelIDs{i}) = struct(...
+                    'rev', met.enzymeBounds(i, 1), ...
+                    'for', met.enzymeBounds(i, 2) ...
+                    );
+            end
         end
         
         function value = getTimeCourses(this)
