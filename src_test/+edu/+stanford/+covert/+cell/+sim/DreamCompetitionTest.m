@@ -102,7 +102,7 @@ classdef DreamCompetitionTest < TestCase
             assertEqual(0:5, experimentalData.time);
         end
         
-         %Run simulation using XML file of parameter values
+        %Run simulation using XML file of parameter values
         function test_simulateHighthroughputExperiments3(~)
             import edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil;
             import edu.stanford.covert.cell.sim.util.ConditionSet;
@@ -205,7 +205,7 @@ classdef DreamCompetitionTest < TestCase
             sim.applyAllParameters(...
                 'lengthSec', 5 ...
                 );
-                                    
+            
             initialConditions = sim.getTimeCourses();
             simulateHighthroughputExperiments(...
                 'parameterVals', sim.getAllParameters(), ...
@@ -214,10 +214,10 @@ classdef DreamCompetitionTest < TestCase
                 );
             
             experimentalData = load('output/dream-sim-5.mat');
-            assertEqual(0:5, experimentalData.time);            
+            assertEqual(0:5, experimentalData.time);
         end
         
-         %test setting initial conditions
+        %test setting initial conditions
         function test_simulateHighthroughputExperiments6(~)
             import edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil;
             import edu.stanford.covert.util.StructUtil;
@@ -226,10 +226,10 @@ classdef DreamCompetitionTest < TestCase
             sim.applyAllParameters(...
                 'lengthSec', 10 ...
                 );
-                                    
+            
             initialConditionsPath = 'output/dream-sim-initial-conditions-6.mat';
             initialConditions = sim.getTimeCourses(); %#ok<NASGU>
-            save(initialConditionsPath, '-struct', 'initialConditions');            
+            save(initialConditionsPath, '-struct', 'initialConditions');
             
             simulateHighthroughputExperiments(...
                 'parameterVals', sim.getAllParameters(), ...
@@ -238,7 +238,7 @@ classdef DreamCompetitionTest < TestCase
                 );
             
             experimentalData = load('output/dream-sim-6.mat');
-            assertEqual(0:10, experimentalData.time);            
+            assertEqual(0:10, experimentalData.time);
         end
         
         function test_averageHighthroughputExperiments(~)
@@ -250,13 +250,13 @@ classdef DreamCompetitionTest < TestCase
                 simulateHighthroughputExperiments(...
                     'seed', i, ...
                     'parameterVals', parameterVals, ...
-                    'outPath', sprintf('output/dream-sim-%d.mat', i) ...
+                    'outPath', sprintf('output/dream-sim-batch-%d.mat', i) ...
                     );
             end
             
             %average
             averageHighthroughputExperiments(...
-                'inPathPattern', 'output/dream-sim-*.mat', ...
+                'inPathPattern', 'output/dream-sim-batch-*.mat', ...
                 'outPath', 'output/dream-sim-avg.mat' ...
                 );
             
