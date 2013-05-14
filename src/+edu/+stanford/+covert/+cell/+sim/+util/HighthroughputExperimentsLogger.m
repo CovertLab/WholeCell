@@ -415,7 +415,7 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             %get matching files
             [inPathBase, ~, ~] = fileparts(inPathPattern);
             files = dir(inPathPattern);
-            
+
             %get longest simulation length
             nTimeMax = 0;
             isFilesSim = false(size(files));
@@ -439,6 +439,7 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
                 nTimeMax = max(nTimeMax, numel(matObj.time));
             end
             files = files(isFilesSim);
+            fprintf('Averaging %d simulations ...', numel(files));
             
             %prep row labels
             sim = edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil.load();
@@ -505,6 +506,9 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
                 avgVals.protArray = 1 / nSim * vals.protArray;
                 avgVals.rxnFluxes = 1 / nSim * vals.rxnFluxes;
             end
+
+            %print status
+            fprintf('done.\n');
         end
     end
 end
