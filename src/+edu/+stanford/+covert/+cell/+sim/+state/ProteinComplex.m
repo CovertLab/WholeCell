@@ -17,12 +17,13 @@ classdef ProteinComplex < edu.stanford.covert.cell.sim.MoleculeCountState
             'molecularWeights'
             'baseCounts'
             'lengths'
-            'halfLives'
             'compartments'
             'proteinComplexComposition'
             'minimumAverageExpression'
             };
-        fittedConstantNames     = {}; %names of process properties that are considered fitted constants, and should be stored with the simulation as such
+        fittedConstantNames     = {   %names of process properties that are considered fitted constants, and should be stored with the simulation as such
+            'halfLives';
+            };
         stateNames              = {   %names of properties which are part of the simulation's state
             'counts'
             };

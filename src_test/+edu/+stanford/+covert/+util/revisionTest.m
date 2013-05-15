@@ -4,8 +4,8 @@ classdef revisionTest < TestCase
             this = this@TestCase(name);
         end
         
-        function testRevision(~)
-            [rev, differences] = edu.stanford.covert.util.revision();            
+        function disabled_testRevision(~)
+            [rev, differences] = edu.stanford.covert.util.revision();
             
             assertTrue(isa(rev, 'double'));
             assertIn(rev, [1 inf]);

@@ -14,7 +14,6 @@ classdef Metabolite < edu.stanford.covert.cell.sim.MoleculeCountState
             'molecularWeights'
             'baseCounts'
             'lengths'
-            'halfLives'
             'compartments'
             'meanNTPConcentration'
             'meanNDPConcentration'
@@ -24,6 +23,7 @@ classdef Metabolite < edu.stanford.covert.cell.sim.MoleculeCountState
             'biomassComposition'
             'biomassProduction'
             'byproducts'
+            'halfLives'
             };
         stateNames              = {   %names of properties which are part of the simulation's state
             'counts'

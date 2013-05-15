@@ -150,11 +150,11 @@ classdef CellState < handle
             validNames = fieldnames(this);
             for i = 1:length(fields)
                 if isfield(value, fields{i}) && ismember(fields{i}, validNames)
-                    if isnumeric(this.(fields{i}))
-                        validateattributes(value.(fields{i}), ...
-                            {'numeric'}, ...
-                            {'size', size(this.(fields{i}))});
-                    end
+                    %if isnumeric(this.(fields{i}))
+                    %    validateattributes(value.(fields{i}), ...
+                    %        {'numeric'}, ...
+                    %        {'size', size(this.(fields{i}))});
+                    %end
                     
                     try %#ok<TRYNC>
                         this.(fields{i}) = value.(fields{i});

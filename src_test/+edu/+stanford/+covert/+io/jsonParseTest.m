@@ -30,10 +30,9 @@ classdef jsonParseTest < TestCase
             assertEqual([3 1 0], parse('[3.0,1.0,0.0]'));
             assertEqual(ones(3,1,0), parse('[[3,1,0]]'));
             assertEqual([-1 -realmax; 0 realmax],...
-                parse('[[2,2],-1.0,0.0,-1.7976931348623157E308,1.7976931348623157E308]'));
-            assertExceptionThrown(@() parse('NaN'), 'jsonParse:InvalidJSON');
-            assertExceptionThrown(@() parse('[[2,2],0,0,NaN,0]'),...
-                'jsonParse:InvalidJSON');
+                parse('[[2,2],-1.0,0.0,-1.7976931348623157E308,1.7976931348623157E308]'));            
+            assertEqual([0 NaN; 0 0], parse('[[2,2],0,0,"NaN",0]'));
+            assertExceptionThrown(@() parse('NaN'), 'MATLAB:Java:GenericException');
         end
 
         function testSingle(~)
@@ -43,8 +42,6 @@ classdef jsonParseTest < TestCase
             assertEqual(ones(3,1,0,'single'), parse('[1,[3,1,0]]'));
             assertEqual(single([-1 -realmax('single'); 0 realmax('single')]),...
                 parse('[1,[2,2],-1.0,0.0,-3.4028235E38,3.4028235E38]'));
-            assertExceptionThrown(@() parse('[1,[2,2],0,0,NaN,0]'),...
-                'jsonParse:InvalidJSON');
         end
 
         function testInt8(~)

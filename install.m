@@ -56,3 +56,6 @@ fprintf(fid, 'config.userName = ''%s'';\n', strrep(userName, '''', ''''''));
 fprintf(fid, 'config.password = ''%s'';\n', strrep(password, '''', ''''''));
 fprintf(fid, 'config.outputPath = ''%s'';\n', strrep(outputPath, '''', ''''''));
 fclose(fid);
+
+%% rebuild fixtures for current MATLAB version
+generateTestFixtures(false);

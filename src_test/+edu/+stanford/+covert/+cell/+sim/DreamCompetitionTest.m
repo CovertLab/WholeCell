@@ -148,6 +148,7 @@ classdef DreamCompetitionTest < TestCase
             for i = 1:numel(sim.states)
                 s = sim.states{i};
                 id = s.wholeCellModelID(7:end);
+                
                 parameters = s.getParameters();
                 if numel(fields(parameters)) > 0
                     assertEqual(condition.parameters.states.(id), data.parameters.states.(id));
@@ -155,17 +156,34 @@ classdef DreamCompetitionTest < TestCase
                     assertEqual(struct(), condition.parameters.states.(id));
                     assertFalse(isfield(data.parameters.states, id));
                 end
+                
+                fittedConstants = s.getFittedConstants();
+                if numel(fields(fittedConstants)) > 0
+                    assertEqual(condition.fittedConstants.states.(id), data.fittedConstants.states.(id));
+                else
+                    assertEqual(struct(), condition.fittedConstants.states.(id));
+                    assertFalse(isfield(data.fittedConstants.states, id));
+                end
             end
             
             for i = 1:numel(sim.processes)
                 p = sim.processes{i};
                 id = p.wholeCellModelID(9:end);
+                
                 parameters = p.getParameters();
                 if numel(fields(parameters)) > 0
                     assertEqual(condition.parameters.processes.(id), data.parameters.processes.(id));
                 else
                     assertEqual(struct(), condition.parameters.processes.(id));
                     assertFalse(isfield(data.parameters.processes, id));
+                end
+                
+                fittedConstants = p.getFittedConstants();
+                if numel(fields(fittedConstants)) > 0
+                    assertEqual(condition.fittedConstants.processes.(id), data.fittedConstants.processes.(id));
+                else
+                    assertEqual(struct(), condition.fittedConstants.processes.(id));
+                    assertFalse(isfield(data.fittedConstants.processes, id));
                 end
             end
             

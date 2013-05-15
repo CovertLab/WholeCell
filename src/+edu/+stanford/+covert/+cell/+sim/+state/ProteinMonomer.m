@@ -30,13 +30,14 @@ classdef ProteinMonomer < edu.stanford.covert.cell.sim.MoleculeCountState
         fixedConstantNames      = {   %names of process properties that are considered fixed constants
             'molecularWeights';
             'baseCounts';
-            'lengths';
-            'halfLives';
+            'lengths';            
             'compartments'
             'minimumAverageExpression'
             'macromoleculeStateInitializationVariation'
             };
-        fittedConstantNames     = {}; %names of process properties that are considered fitted constants, and should be stored with the simulation as such
+        fittedConstantNames     = {   %names of process properties that are considered fitted constants, and should be stored with the simulation as such
+            'halfLives';
+            };
         stateNames              = {   %names of properties which are part of the simulation's state
             'counts'
             };

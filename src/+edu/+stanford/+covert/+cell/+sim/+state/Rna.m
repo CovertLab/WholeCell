@@ -20,11 +20,8 @@ classdef Rna < edu.stanford.covert.cell.sim.MoleculeCountState
         fixedConstantNames      = {   %names of process properties that are considered fixed constants
             'molecularWeights';
             'baseCounts';
-            'lengths';
-            'halfLives';
-            'compartments'
-            'expectedGeneExpression'
-            'expectedGeneHalfLives'
+            'lengths';            
+            'compartments'            
             'weightFractionMRNA'
             'weightFractionRRNA5S'
             'weightFractionRRNA16S'
@@ -39,7 +36,10 @@ classdef Rna < edu.stanford.covert.cell.sim.MoleculeCountState
 			'minTRnaCnt'
             }
         fittedConstantNames     = {   %names of process properties that are considered fitted constants, and should be stored with the simulation as such
+            'expectedGeneExpression'
+            'expectedGeneHalfLives'
             'expression'
+            'halfLives';
             };
         stateNames              = {   %names of properties which are part of the simulation's state
             'counts'

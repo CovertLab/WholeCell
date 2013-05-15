@@ -36,11 +36,7 @@ function result = jsonJava(value)
                 result = jsonNumberMatrix(Json.TRUE, sz, value);
             end
         case 'double'
-            if any(isnan(value(:)))
-                throw(MException('jsonFormat:NaN', '%d NaN(s) in [%s]-sized double',...
-                    nnz(isnan(value)), num2str(size(value))));
-            end
-            value = min(max(value, -realmax), realmax);
+            value(isfinite(value)) = min(max(value(isfinite(value)), -realmax), realmax);
             if numel(sz) == 2 
                 if ~any(sz)
                     result = Json.fromString('[]');
@@ -143,7 +139,15 @@ function result = jsonDoubleMatrix(sz, numbers)
     result = javaArray('com.twolattes.json.Json$Value', n + 1);
     result(1) = jsonIntArray(sz);
     for i = 1:n
-        result(i+1) = Json.number(numbers(i));
+        if isnan(numbers(i))
+            result(i+1) = Json.string('NaN');
+        elseif isinf(numbers(i)) && numbers(i) < 0
+            result(i+1) = Json.string('-Inf');
+        elseif isinf(numbers(i)) && numbers(i) > 0
+            result(i+1) = Json.string('Inf');
+        else
+            result(i+1) = Json.number(numbers(i));
+        end
     end
     result = Json.array(result);
 end
@@ -188,7 +192,15 @@ function result = jsonNumberArray(value)
     n = numel(value);
     result = javaArray('com.twolattes.json.Json$Value', n);
     for i = 1:n
-        result(i) = Json.number(value(i));
+        if isnan(value(i))
+            result(i) = Json.string('NaN');
+        elseif isinf(value(i)) && value(i) < 0
+            result(i) = Json.string('-Inf');
+        elseif isinf(value(i)) && value(i) > 0
+            result(i) = Json.string('Inf');
+        else
+            result(i) = Json.number(value(i));
+        end
     end
     result = Json.array(result);
 end

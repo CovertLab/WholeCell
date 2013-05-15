@@ -7,9 +7,9 @@ function result = jsonParse(jsonString)
         result = toMatlabValue(com.twolattes.json.Json.fromString(jsonString));
     catch ex
         if strcmp(ex.identifier, 'MATLAB:Java:GenericException')
-            throw(MException('jsonParse:InvalidJSON', ex.message));
+            ex.addCause(MException('jsonParse:InvalidJSON', ex.message)).rethrow();
         else
-            throw(ex);
+            ex.rethrow();
         end
     end
 end
@@ -37,7 +37,7 @@ function result = toMatlabValue(value)
             result = logical(parseNumberMatrix(iter, sz, 'int32', 'intValue'));
         case 'com.twolattes.json.Json$NumberImplBigDecimal'
             v2 = iter.next();
-            if strcmp(class(v2), 'com.twolattes.json.Json$NumberImplBigDecimal')
+            if any(ismember(class(v2), {'com.twolattes.json.Json$NumberImplBigDecimal'; 'com.twolattes.json.Json$StringImpl'}))
                 result = parseDoubleArray(value);
                 return;
             end
@@ -106,17 +106,32 @@ function result = toMatlabValue(value)
 end
 
 function result = parseDoubleArray(jsonArray)
+    if strcmp(class(jsonArray), 'com.twolattes.json.Json$StringImpl')
+        result = str2double(char(jsonArray.getString()));
+        return;
+    end
+    
     iter = jsonArray.iterator();
     result = zeros([1 jsonArray.size()]);
     for i = 1:numel(result)
-        result(i) = iter.next().getNumber().doubleValue();
+        next = iter.next();
+        if strcmp(class(next), 'com.twolattes.json.Json$StringImpl')
+            result(i) = str2double(char(next));
+        else
+            result(i) = next.getNumber().doubleValue();
+        end
     end
 end
 
 function result = parseNumberMatrix(iter, sz, type, methodName)
     result = zeros(sz, type);
     for i = 1:numel(result)
-        result(i) = iter.next().getNumber().(methodName)();
+        next = iter.next();
+        if strcmp(class(next), 'com.twolattes.json.Json$StringImpl')
+            result(i) = str2double(char(next.getString()));
+        else
+            result(i) = next.getNumber().(methodName)();
+        end
     end
 end
 

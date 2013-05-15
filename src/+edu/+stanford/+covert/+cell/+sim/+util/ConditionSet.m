@@ -169,7 +169,7 @@ classdef ConditionSet
                     for j = 1:numel(fields)
                         subfields = fieldnames(condition.(types).processes.(fields{j}));
                         for k = 1:numel(subfields)
-                            val = condition.(types).processes.(fields{j}).(subfields{k});
+                            val = condition.(types).processes.(fields{j}).(subfields{k});                            
                             fprintf(fid, '            <%s process="%s" name="%s" value="%s"/>\n', ...
                                 type, fields{j}, subfields{k}, ...
                                 ConditionSet.jsonFormat(val));

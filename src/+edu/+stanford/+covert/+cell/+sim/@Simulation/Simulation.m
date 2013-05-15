@@ -350,7 +350,51 @@ classdef Simulation < handle
         end
         
         function this = applyFittedConstants(this, value)
+            %% error check  
+            %metabolic kinetics
+            if isfield(value, 'processes')
+                if isfield(value.processes, 'Metabolism')
+                    met = this.process('Metabolism');
+                    if ...
+                            isfield(value.processes.Metabolism, 'enzymeBounds') && ...
+                            isfield(value.processes.Metabolism, 'fbaEnzymeBounds') && ...
+                            ~isequal(...
+                            value.processes.Metabolism.fbaEnzymeBounds(met.fbaReactionIndexs_metabolicConversion, :), ...
+                            value.processes.Metabolism.enzymeBounds(met.reactionIndexs_fba, :) ...
+                            )
+                        throw(MException('Simulation:error', 'parameters not synchronized'));
+                    end
+                end
+            end
+            
+            %transcriptionUnitBindingProbabilities
+            if isfield(value, 'processes')
+                if ...
+                        isfield(value.processes, 'Transcription') && ...
+                        isfield(value.processes.Transcription, 'transcriptionUnitBindingProbabilities') && ...
+                        abs(sum(value.processes.Transcription.transcriptionUnitBindingProbabilities) - 1) > sqrt(eps)
+                    throw(MException('Simulation:error', 'parameters not normalized'));
+                end
+            end
+            
+            %TODO: expression, half lives, transcriptionUnitBindingProbabilities            
+                        
+            %% set parameters
             this.setFromStruct(value, 'fittedConstants', {});
+            
+            %% synchronize
+            %copy kinetics over to FBA setup
+            if ...
+                    isfield(value, 'processes') && ...
+                    isfield(value.processes, 'Metabolism')
+                if isfield(value.processes.Metabolism, 'enzymeBounds')
+                    met.fbaEnzymeBounds(met.fbaReactionIndexs_metabolicConversion, :) = ...
+                        met.enzymeBounds(met.reactionIndexs_fba, :);
+                else
+                    met.enzymeBounds(met.reactionIndexs_fba, :) = ...
+                        met.fbaEnzymeBounds(met.fbaReactionIndexs_metabolicConversion, :);
+                end
+            end
         end
         
         function this = applyFixedConstants(this, value)
@@ -684,11 +728,11 @@ classdef Simulation < handle
             for i = 1:length(fields)
                 if isfield(value, fields{i}) && ismember(fields{i}, propertyNames)
                     try %#ok<TRYNC>
-                        if isnumeric(this.(fields{i}))
-                            validateattributes(value.(fields{i}), ...
-                                {'numeric'}, ...
-                                {'size', size(this.(fields{i}))});
-                        end
+                        %if isnumeric(this.(fields{i}))
+                        %    validateattributes(value.(fields{i}), ...
+                        %        {'numeric'}, ...
+                        %        {'size', size(this.(fields{i}))});
+                        %end
                         
                         this.(fields{i}) = value.(fields{i});
                     end

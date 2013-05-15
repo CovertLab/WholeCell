@@ -4,12 +4,16 @@
 % Author: Jared Jacobs, jmjacobs@stanford.edu
 % Affilitation: Covert Lab, Department of Bioengineering, Stanford University
 % Last updated: 5/31/2011
-function generateTestFixtures()
+function generateTestFixtures(useCachedKb)
 import edu.stanford.covert.cell.sim.runners.SimulationRunner;
+
+if nargin < 1
+	useCachedKb = true;
+end
 
 %create runner which helps do the tasks below
 runner = SimulationRunner(...
-    'useCachedKb', false, ...
+    'useCachedKb', useCachedKb, ...
     'useCachedSim', false, ...
     'cacheKb', true, ...
     'cacheSimulation', true);

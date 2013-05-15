@@ -147,20 +147,20 @@ classdef  Metabolism < edu.stanford.covert.cell.sim.ReactionProcess
             };
         fixedConstantNames__       = {   %names of fixed constant properties
             'growthAssociatedMaintenance';
-            'nonGrowthAssociatedMaintenance';
-            'cellCycleLength';
+            'nonGrowthAssociatedMaintenance';            
             'exchangeRateUpperBound_carbon';
             'exchangeRateUpperBound_noncarbon';
             'fbaObjective';
             'fbaRightHandSide';
             'fbaReactionStoichiometryMatrix';
-            'fbaReactionCatalysisMatrix';
-            'fbaReactionBounds';
-            'fbaEnzymeBounds';
+            'fbaReactionCatalysisMatrix';            
             'metabolismProduction';
             'monomerCompartments';
             };
         fittedConstantNames__      = {   %names of fitted constant properties
+            'cellCycleLength';
+            'fbaReactionBounds';
+            'fbaEnzymeBounds';
             'macromoleculeStateInitializationGrowthFactor'
             'unaccountedEnergyConsumption';
             };

@@ -210,6 +210,14 @@ classdef ReactionProcess < edu.stanford.covert.cell.sim.Process
 
     %get/set methods of annotation properties
     methods
+        %Annotates as fitted constants:
+        function value = computeFittedConstantsNames(this)
+            value = [this.computeFittedConstantsNames@edu.stanford.covert.cell.sim.Process();
+                'enzymeBounds';
+                'reactionBounds';
+                ];
+        end
+        
         %Annotates as fixed constants:
         function value = computeFixedConstantsNames(this)
             value = [this.computeFixedConstantsNames@edu.stanford.covert.cell.sim.Process();
@@ -219,8 +227,6 @@ classdef ReactionProcess < edu.stanford.covert.cell.sim.Process
                 'reactionCatalysisMatrix';
                 'reactionModificationMatrix';
                 'reactionCoenzymeMatrix';
-                'enzymeBounds';
-                'reactionBounds';
                 ];
         end
     end
