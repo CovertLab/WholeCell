@@ -459,14 +459,17 @@ classdef Simulation < handle
             end
         end
         
-        function value = getAllParameters(this)
+        function value = getAllParameters(this, includeFixedConstants)
             import edu.stanford.covert.util.StructUtil;
             
             value = struct;
             value = StructUtil.catstruct(value, this.getOptions());
             value = StructUtil.catstruct(value, this.getParameters());
             value = StructUtil.catstruct(value, this.getFittedConstants());
-            value = StructUtil.catstruct(value, this.getFixedConstants());
+            
+            if nargin >= 2 && includeFixedConstants
+                value = StructUtil.catstruct(value, this.getFixedConstants());
+            end
         end
         
         function value = getOptions(this)

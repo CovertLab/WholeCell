@@ -18,7 +18,6 @@ classdef StateBrowser_Test < TestCase
         function setUp(this)
             import edu.stanford.covert.cell.sim.analysis.StateBrowser;
             import edu.stanford.covert.cell.sim.SimulationFixture;
-            import edu.stanford.covert.cell.sim.util.ConditionSet;
             import edu.stanford.covert.cell.sim.util.DiskLogger;
             
             simDir = edu.stanford.covert.cell.sim.util.SimulationDiskUtil.getLatestSimulation();

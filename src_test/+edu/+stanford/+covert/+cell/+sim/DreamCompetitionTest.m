@@ -26,8 +26,8 @@ classdef DreamCompetitionTest < TestCase
             sim.applyAllParameters(struct('lengthSec', 1));
             assertEqual(1, sim.getAllParameters().lengthSec);
             
-            sim.applyAllParameters(struct('processes', struct('Metabolism', struct('cellCycleLength', 1000))));
-            assertEqual(1000, sim.getAllParameters().processes.Metabolism.cellCycleLength);
+            sim.applyAllParameters(struct('processes', struct('Metabolism', struct('unaccountedEnergyConsumption', 1000))));
+            assertEqual(1000, sim.getAllParameters().processes.Metabolism.unaccountedEnergyConsumption);
         end
         
         function test_getMetabolicReactionKinetics(~)
@@ -130,6 +130,8 @@ classdef DreamCompetitionTest < TestCase
             condition.replicates = 1;
             condition.options = sim.getOptions();
             condition.parameters = sim.getParameters();
+            condition.fittedConstants = sim.getFittedConstants();
+            %condition.fixedConstants = sim.getFixedConstants();
             
             ConditionSet.generateConditionSet(sim, metadata, condition, parameterValsPath);
             

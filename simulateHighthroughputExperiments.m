@@ -121,6 +121,8 @@ elseif ~isempty(parameterValsPath)
             parameterVals = StructUtil.catstruct(parameterVals, tmp.options);
             parameterVals = StructUtil.catstruct(parameterVals, tmp.perturbations);
             parameterVals = StructUtil.catstruct(parameterVals, tmp.parameters);
+            parameterVals = StructUtil.catstruct(parameterVals, tmp.fittedConstants);
+            parameterVals = StructUtil.catstruct(parameterVals, tmp.fixedConstants);
         otherwise
             throw(MException('simulateHighthroughputExperiments:invalidFileFormat', 'Invalid input file format "%s"', ext));
     end

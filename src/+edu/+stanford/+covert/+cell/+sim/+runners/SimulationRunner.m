@@ -281,6 +281,8 @@ classdef SimulationRunner < handle
                 sim.applyOptions(data.options);
                 sim.applyOptions(data.perturbations);
                 sim.applyParameters(data.parameters);
+                sim.applyFittedConstants(data.fittedConstants);
+                sim.applyFixedConstants(data.fixedConstants);
                 summaryLogger.setOptions(struct('verbosity', sim.verbosity, 'outputDirectory', this.outDir));
             end
             

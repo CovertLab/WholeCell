@@ -74,98 +74,11 @@ classdef ConditionSet
                 fprintf(fid, '        <longDescription><![CDATA[%s]]></longDescription>\n', conditions(i).longDescription);
                 fprintf(fid, '        <replicates>%d</replicates>\n', conditions(i).replicates);
                 
-                %options
-                if isfield(conditions(i), 'options') && isstruct(conditions(i).options)
-                    %open
-                    fprintf(fid, '        <options>\n');
-                    
-                    %global
-                    fields = setdiff(fieldnames(conditions(i).options), {'states', 'processes'});
-                    for j = 1:numel(fields)
-                        fprintf(fid, '            <option name="%s" value="%s"/>\n', ...
-                            fields{j}, ConditionSet.jsonFormat(conditions(i).options.(fields{j})));
-                    end
-                    
-                    %states
-                    if isfield(conditions(i).options, 'states')
-                        fields = fieldnames(conditions(i).options.states);
-                        for j = 1:numel(fields)
-                            subfields = fieldnames(conditions(i).options.states.(fields{j}));
-                            for k = 1:numel(subfields)
-                                fprintf(fid, '            <option state="%s" name="%s" value="%s"/>\n', ...
-                                    fields{j}, subfields{k}, ...
-                                    ConditionSet.jsonFormat(conditions(i).options.states.(fields{j}).(subfields{k})));
-                            end
-                        end
-                    end
-                    
-                    %processes
-                    if isfield(conditions(i).options, 'processes')
-                        fields = fieldnames(conditions(i).options.processes);
-                        for j = 1:numel(fields)
-                            subfields = fieldnames(conditions(i).options.processes.(fields{j}));
-                            for k = 1:numel(subfields)
-                                fprintf(fid, '            <option process="%s" name="%s" value="%s"/>\n', ...
-                                    fields{j}, subfields{k}, ...
-                                    ConditionSet.jsonFormat(conditions(i).options.processes.(fields{j}).(subfields{k})));
-                            end
-                        end
-                    end
-                    
-                    %close
-                    fprintf(fid, '        </options>\n');
-                end
-                
-                %parameters
-                if isfield(conditions(i), 'parameters') && isstruct(conditions(i).parameters)
-                    %open
-                    fprintf(fid, '        <parameters>\n');
-                    
-                    %states
-                    if isfield(conditions(i).parameters, 'states')
-                        fields = fieldnames(conditions(i).parameters.states);
-                        for j = 1:numel(fields)
-                            subfields = fieldnames(conditions(i).parameters.states.(fields{j}));
-                            for k = 1:numel(subfields)
-                                if numel(conditions(i).parameters.states.(fields{j}).(subfields{k})) <= 1 || ischar(conditions(i).parameters.states.(fields{j}).(subfields{k}))
-                                    fprintf(fid, '            <parameter state="%s" name="%s" value="%s"/>\n', ...
-                                        fields{j}, subfields{k}, ...
-                                        ConditionSet.jsonFormat(conditions(i).parameters.states.(fields{j}).(subfields{k})));
-                                else
-                                    for l = 1:numel(conditions(i).parameters.states.(fields{j}).(subfields{k}))
-                                        fprintf(fid, '            <parameter state="%s" name="%s" index="%d" value="%s"/>\n', ...
-                                            fields{j}, subfields{k}, l, ...
-                                            ConditionSet.jsonFormat(conditions(i).parameters.states.(fields{j}).(subfields{k})(l) ));
-                                    end
-                                end
-                            end
-                        end
-                    end
-                    
-                    %processes
-                    if isfield(conditions(i).parameters, 'processes')
-                        fields = fieldnames(conditions(i).parameters.processes);
-                        for j = 1:numel(fields)
-                            subfields = fieldnames(conditions(i).parameters.processes.(fields{j}));
-                            for k = 1:numel(subfields)
-                                if numel(conditions(i).parameters.processes.(fields{j}).(subfields{k})) <= 1 || ischar(conditions(i).parameters.processes.(fields{j}).(subfields{k}))
-                                    fprintf(fid, '            <parameter process="%s" name="%s" value="%s"/>\n', ...
-                                        fields{j}, subfields{k}, ...
-                                        ConditionSet.jsonFormat(conditions(i).parameters.processes.(fields{j}).(subfields{k})));
-                                else
-                                    for l = 1:numel(conditions(i).parameters.processes.(fields{j}).(subfields{k}))
-                                        fprintf(fid, '            <parameter process="%s" name="%s" index="%d" value="%s"/>\n', ...
-                                            fields{j}, subfields{k}, l, ...
-                                            ConditionSet.jsonFormat(conditions(i).parameters.processes.(fields{j}).(subfields{k})(l) ));
-                                    end
-                                end
-                            end
-                        end
-                    end
-                    
-                    %close
-                    fprintf(fid, '        </parameters>\n');
-                end
+                %options, parameters, fitted constants, fixed constants
+                ConditionSet.generateConditionSet_FormatParameters(conditions(i), 'option', fid);
+                ConditionSet.generateConditionSet_FormatParameters(conditions(i), 'parameter', fid);
+                ConditionSet.generateConditionSet_FormatParameters(conditions(i), 'fittedConstant', fid);
+                ConditionSet.generateConditionSet_FormatParameters(conditions(i), 'fixedConstant', fid);
                 
                 %perturbations
                 if isfield(conditions(i), 'perturbations') && isstruct(conditions(i).perturbations)
@@ -218,6 +131,56 @@ classdef ConditionSet
             fprintf(fid, '</conditions>\n');
             fclose(fid);
         end
+        
+        function generateConditionSet_FormatParameters(condition, type, fid)
+            import edu.stanford.covert.cell.sim.util.ConditionSet;
+            
+            types = [type 's'];
+            
+            if isfield(condition, types) && isstruct(condition.(types))
+                %open
+                fprintf(fid, '        <%s>\n', types);
+                
+                %global
+                fields = setdiff(fieldnames(condition.(types)), {'states', 'processes'});
+                for j = 1:numel(fields)
+                    val = condition.(types).(fields{j});
+                    fprintf(fid, '            <%s name="%s" value="%s"/>\n', ...
+                        type, fields{j}, ConditionSet.jsonFormat(val));
+                end
+                
+                %states
+                if isfield(condition.(types), 'states')
+                    fields = fieldnames(condition.(types).states);
+                    for j = 1:numel(fields)
+                        subfields = fieldnames(condition.(types).states.(fields{j}));
+                        for k = 1:numel(subfields)
+                            val = condition.(types).states.(fields{j}).(subfields{k});
+                            fprintf(fid, '            <%s state="%s" name="%s" value="%s"/>\n', ...
+                                type, fields{j}, subfields{k}, ...
+                                ConditionSet.jsonFormat(val));                           
+                        end
+                    end
+                end
+                
+                %processes
+                if isfield(condition.(types), 'processes')
+                    fields = fieldnames(condition.(types).processes);
+                    for j = 1:numel(fields)
+                        subfields = fieldnames(condition.(types).processes.(fields{j}));
+                        for k = 1:numel(subfields)
+                            val = condition.(types).processes.(fields{j}).(subfields{k});
+                            fprintf(fid, '            <%s process="%s" name="%s" value="%s"/>\n', ...
+                                type, fields{j}, subfields{k}, ...
+                                ConditionSet.jsonFormat(val));
+                        end
+                    end
+                end
+                
+                %close
+                fprintf(fid, '        </%s>\n', types);
+            end
+        end
     end
     
     %parse condition set
@@ -269,75 +232,11 @@ classdef ConditionSet
             data.metadata.shortDescription = char(condition.getElementsByTagName('shortDescription').item(0).getFirstChild.getNodeValue);
             data.metadata.longDescription = char(condition.getElementsByTagName('longDescription').item(0).getFirstChild.getNodeValue);
             
-            %options
-            options = xml.getElementsByTagName('option');
-            for i = 1:options.getLength
-                option = options.item(i-1);
-                
-                name = char(option.getAttribute('name'));
-                state = char(option.getAttribute('state'));
-                process = char(option.getAttribute('process'));
-                value = ConditionSet.jsonParse(char(option.getAttribute('value')));
-                
-                if ~isempty(state)
-                    data.options.states.(state).(name) = value;
-                elseif ~isempty(process)
-                    data.options.processes.(process).(name) = value;
-                else
-                    data.options.(name) = value;
-                end
-            end
-            
-            %parameters
-            parameters = xml.getElementsByTagName('parameter');
-            for i=1:parameters.getLength
-                parameter = parameters.item(i-1);
-                
-                name = char(parameter.getAttribute('name'));
-                indexName = char(parameter.getAttribute('index'));
-                state = strrep(char(parameter.getAttribute('state')), 'State_', '');
-                process = strrep(char(parameter.getAttribute('process')), 'Process_', '');
-                value = ConditionSet.jsonParse(char(parameter.getAttribute('value')));
-                                
-                if ~isempty(state)
-                    if isempty(indexName)
-                        data.parameters.states.(state).(name) = value;
-                    else
-                        index = str2double(indexName);
-                        if isnan(index)
-                            index = sim.state(state).(indexName);
-                            data.parameters.states.(state).(name)(index) = value;
-                        else
-                            data.parameters.states.(state).(name)(index, 1) = value;
-                        end
-                        
-                    end
-                elseif ~isempty(process)
-                    if isempty(indexName)
-                        data.parameters.processes.(process).(name) = value;
-                    else
-                        index = str2double(indexName);
-                        if isnan(indexName)
-                            index = sim.process(process).(indexName);
-                            data.parameters.processes.(process).(name)(index) = value;
-                        else
-                            data.parameters.processes.(process).(name)(index, 1) = value;
-                        end                        
-                    end
-                else
-                    if isempty(indexName)
-                        data.parameters.(name) = value;
-                    else
-                        index = str2double(indexName);
-                        if isnan(indexName)
-                            index = sim.(indexName);
-                            data.parameters.(name)(index) = value;
-                        else
-                            data.parameters.(name)(index, 1) = value;
-                        end                        
-                    end
-                end
-            end
+            %options, parameters, fitted constants, fixed constants
+            data.options = ConditionSet.parseConditionSet_Parameters(xml, 'option');
+            data.parameters = ConditionSet.parseConditionSet_Parameters(xml, 'parameter');
+            data.fittedConstants = ConditionSet.parseConditionSet_Parameters(xml, 'fittedConstant');
+            data.fixedConstants = ConditionSet.parseConditionSet_Parameters(xml, 'fixedConstant');
             
             %perturbations
             s = sim.state('Stimulus');
@@ -380,6 +279,62 @@ classdef ConditionSet
                         data.perturbations.media = [
                             data.perturbations.media;
                             component compartment value initialTime finalTime sub2ind([nMet nComp], component, compartment)];
+                end
+            end
+        end
+        
+        function data = parseConditionSet_Parameters(xml, type)
+            import edu.stanford.covert.cell.sim.util.ConditionSet;
+            
+            data = struct('processes', struct(), 'states', struct());
+            
+            parameters = xml.getElementsByTagName(type);
+            for i = 1:parameters.getLength
+                parameter = parameters.item(i-1);
+                
+                name = char(parameter.getAttribute('name'));
+                indexName = char(parameter.getAttribute('index'));
+                state = strrep(char(parameter.getAttribute('state')), 'State_', '');
+                process = strrep(char(parameter.getAttribute('process')), 'Process_', '');
+                value = ConditionSet.jsonParse(char(parameter.getAttribute('value')));
+                                
+                if ~isempty(state)
+                    if isempty(indexName)
+                        data.states.(state).(name) = value;
+                    else
+                        index = str2double(indexName);
+                        if isnan(index)
+                            index = sim.state(state).(indexName);
+                            data.states.(state).(name)(index) = value;
+                        else
+                            data.states.(state).(name)(index, 1) = value;
+                        end
+                        
+                    end
+                elseif ~isempty(process)
+                    if isempty(indexName)
+                        data.processes.(process).(name) = value;
+                    else
+                        index = str2double(indexName);
+                        if isnan(indexName)
+                            index = sim.process(process).(indexName);
+                            data.processes.(process).(name)(index) = value;
+                        else
+                            data.processes.(process).(name)(index, 1) = value;
+                        end                        
+                    end
+                else
+                    if isempty(indexName)
+                        data.(name) = value;
+                    else
+                        index = str2double(indexName);
+                        if isnan(indexName)
+                            index = sim.(indexName);
+                            data.(name)(index) = value;
+                        else
+                            data.(name)(index, 1) = value;
+                        end                        
+                    end
                 end
             end
         end
@@ -496,9 +451,7 @@ classdef ConditionSet
                             throw(MException('ConditionSet:invalidXML','invalid XML'));
                         end
                         validateattributes(x, {'numeric'}, {'real', 'nonnegative', 'integer'});
-                    case 'options'
-                        edu.stanford.covert.cell.sim.util.ConditionSet.validateOptions(child);
-                    case 'parameters'
+                    case {'options', 'parameters', 'fittedConstants', 'fixedConstants'}
                         edu.stanford.covert.cell.sim.util.ConditionSet.validateParameters(child);
                     case 'perturbations'
                         edu.stanford.covert.cell.sim.util.ConditionSet.validatePerturbations(child);
@@ -510,62 +463,16 @@ classdef ConditionSet
                 throw(MException('ConditionSet:invalidXML','invalid XML'));
             end
         end
-        
-        function validateOptions(xml)
-            for i = 1:xml.getChildNodes.getLength
-                child = xml.getChildNodes.item(i-1);
-                switch char(child.getNodeName)
-                    case {'#comment', '#text'}
-                    case 'option'
-                        edu.stanford.covert.cell.sim.util.ConditionSet.validateOption(child);
-                    otherwise
-                        throw(MException('ConditionSet:invalidXML','invalid XML'));
-                end
-            end
-        end
-        
-        function validateOption(xml)
-            hasName = 0;
-            hasState = 0;
-            hasProcess = 0;
-            for i = 1:xml.getAttributes.getLength
-                child = xml.getAttributes.item(i-1);
-                switch char(child.getNodeName)
-                    case {'#comment', '#text'}
-                    case 'name'
-                        hasName = hasName+1;
-                        if isempty(char(child.getFirstChild.getNodeValue))
-                            throw(MException('ConditionSet:invalidXML','invalid XML'));
-                        end
-                    case 'state'
-                        hasState = hasState+1;
-                        if isempty(char(child.getFirstChild.getNodeValue))
-                            throw(MException('ConditionSet:invalidXML','invalid XML'));
-                        end
-                    case 'process'
-                        hasProcess = hasProcess+1;
-                        if isempty(char(child.getFirstChild.getNodeValue))
-                            throw(MException('ConditionSet:invalidXML','invalid XML'));
-                        end
-                    case 'value'
-                        if isempty(char(child.getFirstChild.getNodeValue))
-                            throw(MException('ConditionSet:invalidXML','invalid XML'));
-                        end
-                    otherwise
-                        throw(MException('ConditionSet:invalidXML','invalid XML'));
-                end
-            end
-            if hasName~=1 || (hasState+hasProcess)>1
-                throw(MException('ConditionSet:invalidXML','invalid XML'));
-            end
-        end
-        
+               
         function validateParameters(xml)
+            types = char(xml.getNodeName);
+            type = types(1:end-1);
+            
             for i = 1:xml.getChildNodes.getLength
                 child = xml.getChildNodes.item(i-1);
                 switch char(child.getNodeName)
                     case {'#comment', '#text'}
-                    case 'parameter'
+                    case type
                         edu.stanford.covert.cell.sim.util.ConditionSet.validateParameter(child);
                     otherwise
                         throw(MException('ConditionSet:invalidXML','invalid XML'));
@@ -578,38 +485,38 @@ classdef ConditionSet
             hasState = 0;
             hasProcess = 0;
             for i = 1:xml.getAttributes.getLength
-                child = xml.getAttributes.item(i-1);
+                child = xml.getAttributes.item(i - 1);
                 switch char(child.getNodeName)
                     case {'#comment', '#text'}
                     case 'name'
-                        hasName = hasName+1;
+                        hasName = hasName + 1;
                         if isempty(char(child.getFirstChild.getNodeValue))
-                            throw(MException('ConditionSet:invalidXML','invalid XML'));
+                            throw(MException('ConditionSet:invalidXML', 'invalid XML'));
                         end
                     case 'index'
                         if isempty(char(child.getFirstChild.getNodeValue))
-                            throw(MException('ConditionSet:invalidXML','invalid XML'));
+                            throw(MException('ConditionSet:invalidXML', 'invalid XML'));
                         end
                     case 'state'
-                        hasState = hasState+1;
+                        hasState = hasState + 1;
                         if isempty(char(child.getFirstChild.getNodeValue))
-                            throw(MException('ConditionSet:invalidXML','invalid XML'));
+                            throw(MException('ConditionSet:invalidXML', 'invalid XML'));
                         end
                     case 'process'
-                        hasProcess = hasProcess+1;
+                        hasProcess = hasProcess + 1;
                         if isempty(char(child.getFirstChild.getNodeValue))
-                            throw(MException('ConditionSet:invalidXML','invalid XML'));
+                            throw(MException('ConditionSet:invalidXML', 'invalid XML'));
                         end
                     case 'value'
                         if isempty(char(child.getFirstChild.getNodeValue))
-                            throw(MException('ConditionSet:invalidXML','invalid XML'));
+                            throw(MException('ConditionSet:invalidXML', 'invalid XML'));
                         end
                     otherwise
-                        throw(MException('ConditionSet:invalidXML','invalid XML'));
+                        throw(MException('ConditionSet:invalidXML', 'invalid XML'));
                 end
             end
-            if hasName~=1 || (hasState+hasProcess)~=1
-                throw(MException('ConditionSet:invalidXML','invalid XML'));
+            if hasName ~= 1 || (hasState + hasProcess) > 1
+                throw(MException('ConditionSet:invalidXML', 'invalid XML'));
             end
         end
         
