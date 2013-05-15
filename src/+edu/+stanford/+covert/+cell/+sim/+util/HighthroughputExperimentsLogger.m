@@ -37,12 +37,12 @@
 %     Rows are labeled by MetabolicReaction.reactionWholeCellModelIDs
 %
 % Input:
-% - outPath [.mat file path]: file path where simulated data should be
+% - simPath [.mat file path]: file path where simulated data should be
 %   saved.
 %
 % Output
 % - .mat file containing a struct of the simulated data. .mat is saved at
-%   the location specified by outPath. Row and column labels are returned
+%   the location specified by simPath. Row and column labels are returned
 %   in the "labels" field of the returned struct.
 %
 % Notation
@@ -62,7 +62,7 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
     end
     
     properties (Access = protected)
-        outPath      %output directory
+        simPath      %output directory
     end
     
     %indices, labels
@@ -112,8 +112,8 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
     end
     
     methods
-        function this = HighthroughputExperimentsLogger(outPath)
-            this.outPath = outPath;
+        function this = HighthroughputExperimentsLogger(simPath)
+            this.simPath = simPath;
         end
         
         %Allocates space for small summary stats gathered after each segment.
@@ -631,12 +631,12 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
                 'rxnFluxes',    this.rxnFluxes, ...
                 'labels',       this.labels ...
                 ); %#ok<NASGU>
-            save(this.outPath, '-struct', 'data');
+            save(this.simPath, '-struct', 'data');
         end
     end
     
     methods (Static = true)
-        function [avgVals, labels] = average(inPathPattern, verbosity)
+        function [avgVals, labels] = average(simPathPattern, verbosity)
             import edu.stanford.covert.cell.sim.util.HighthroughputExperimentsLogger;
             
             if nargin < 2
@@ -644,8 +644,8 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             end
             
             %get matching files
-            [inPathBase, ~, ~] = fileparts(inPathPattern);
-            files = dir(inPathPattern);
+            [inPathBase, ~, ~] = fileparts(simPathPattern);
+            files = dir(simPathPattern);
             
             %get longest simulation length
             nTimeMax = 0;

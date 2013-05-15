@@ -14,14 +14,16 @@
 %   Use http://wholecell.stanford.edu/simulation/runSimulations.php to
 %   generate XML file.
 % - initialConditions [.
-% - outPath [.mat file path]: Desired file path for simulated in silico
+% - simPath [.mat file path]: Desired file path for simulated in silico
 %   experimental data (see HighthroughputExperimentsLogger for information
 %   about simulated data)
+% - verbosity [integer]: Desired verbosity level. Zero supresses output.
+%   Higher value prints more output.
 %
 % Output
-% - If outPath is set, saves simulated in silico experimental data (see
+% - If simPath is set, saves simulated in silico experimental data (see
 %   HighthroughputExperimentsLogger for information about simulated data)
-%   to path specified by outPath
+%   to path specified by simPath
 %
 % Examples:
 %   %Run simulation using struct of parameter values
@@ -31,7 +33,7 @@
 %   simulateHighthroughputExperiments(...
 %       'seed', 1, ...
 %       'parameterVals', parameterVals, ...
-%       'outPath', 'sim1.mat' ...
+%       'simPath', 'sim1.mat' ...
 %       );
 %
 %   %Run simulation using mat file of parameter values
@@ -43,7 +45,7 @@
 %   simulateHighthroughputExperiments(...
 %       'seed', 1, ...
 %       'parameterValsPath', parameterValsPath, ...
-%       'outPath', 'sim1.mat' ...
+%       'simPath', 'sim1.mat' ...
 %       );
 %
 % See also:
@@ -69,7 +71,7 @@ ip.addParamValue('seed', []);
 ip.addParamValue('geneticKnockouts', [], @(x) ischar(x) || iscell(x));
 ip.addParamValue('parameterVals', [], @(x) isstruct(x));
 ip.addParamValue('parameterValsPath', '', @(x) exist(x, 'file'));
-ip.addParamValue('outPath', '', @(x) ischar(x));
+ip.addParamValue('simPath', '', @(x) ischar(x));
 ip.addParamValue('initialConditions', struct(), @(x) isstruct(x));
 ip.addParamValue('initialConditionsPath', '', @(x) exist(x, 'file'));
 ip.addParamValue('verbosity', 1);
@@ -82,7 +84,7 @@ parameterVals         = ip.Results.parameterVals;
 parameterValsPath     = ip.Results.parameterValsPath;
 initialConditions     = ip.Results.initialConditions;
 initialConditionsPath = ip.Results.initialConditionsPath;
-outPath               = ip.Results.outPath;
+simPath               = ip.Results.simPath;
 verbosity             = ip.Results.verbosity;
 
 if ischar(seed)
@@ -144,8 +146,8 @@ end
 
 %% setup loggers
 loggers = {SummaryLogger(1, verbosity)};
-if ~isempty(outPath)
-    loggers = [loggers; {HighthroughputExperimentsLogger(outPath)}];
+if ~isempty(simPath)
+    loggers = [loggers; {HighthroughputExperimentsLogger(simPath)}];
 end
 
 %% run
