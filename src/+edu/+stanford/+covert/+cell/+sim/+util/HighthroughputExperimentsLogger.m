@@ -6,13 +6,13 @@
 %   - Volume (L)
 % - Event times
 %   - Replication initiation time (s)
-%   - Replication terminatation time (s)
+%   - Replication termination time (s)
 %   - Cell cycle length (s)
 % - Averages
 %   - Metabolite concentrations (M)
-%   - DNA-seq (freq)
-%   - RNA-seq (freq)
-%   - ChIP-seq (freq)
+%   - DNA-seq (freq/nt)
+%   - RNA-seq (freq/nt)
+%   - ChIP-seq (freq/nt)
 %   - RNA expression array (M)
 %   - Protein expression array (M)
 %   - Metabolic reaction fluxes (rxn/s/gDCW)
@@ -616,8 +616,12 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
     end
     
     methods (Static = true)
-        function [avgVals, labels] = average(inPathPattern)
+        function [avgVals, labels] = average(inPathPattern, verbosity)
             import edu.stanford.covert.cell.sim.util.HighthroughputExperimentsLogger;
+            
+            if nargin < 2
+                verbosity = 1;
+            end
             
             %get matching files
             [inPathBase, ~, ~] = fileparts(inPathPattern);
@@ -646,7 +650,9 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
                 nTimeMax = max(nTimeMax, numel(matObj.time));
             end
             files = files(isFilesSim);
-            fprintf('Averaging %d simulations ...', numel(files));
+            if verbosity >= 1
+                fprintf('Averaging %d simulations ...', numel(files));
+            end
             
             %prep row labels
             sim = edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil.load();
@@ -755,7 +761,9 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             avgVals.rxnFluxes = rmfield(avgVals.rxnFluxes, 'var');
             
             %print status
-            fprintf('done.\n');
+            if verbosity >= 1
+                fprintf('done.\n');
+            end
         end
     end
     

@@ -46,14 +46,21 @@ ip = inputParser();
 
 ip.addParamValue('inPathPattern', '', @(x) ischar(x));
 ip.addParamValue('outPath', '', @(x) ischar(x));
+ip.addParamValue('verbosity', 1);
 
 ip.parse(varargin{:});
 
 inPathPattern = ip.Results.inPathPattern;
 outPath       = ip.Results.outPath;
+verbosity     = ip.Results.verbosity;
+
+if ischar(verbosity)
+    verbosity = str2double(verbosity);
+end
+validateattributes(verbosity, {'numeric'}, {'integer'});
 
 %average experiments
-[avgVals, labels] = HighthroughputExperimentsLogger.average(inPathPattern);
+[avgVals, labels] = HighthroughputExperimentsLogger.average(inPathPattern, verbosity);
 if ~isempty(outPath)
     tmp = avgVals;
     tmp.labels = labels;

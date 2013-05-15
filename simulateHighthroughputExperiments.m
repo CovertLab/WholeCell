@@ -72,6 +72,7 @@ ip.addParamValue('parameterValsPath', '', @(x) exist(x, 'file'));
 ip.addParamValue('outPath', '', @(x) ischar(x));
 ip.addParamValue('initialConditions', struct(), @(x) isstruct(x));
 ip.addParamValue('initialConditionsPath', '', @(x) exist(x, 'file'));
+ip.addParamValue('verbosity', 1);
 
 ip.parse(varargin{:});
 
@@ -82,6 +83,7 @@ parameterValsPath     = ip.Results.parameterValsPath;
 initialConditions     = ip.Results.initialConditions;
 initialConditionsPath = ip.Results.initialConditionsPath;
 outPath               = ip.Results.outPath;
+verbosity             = ip.Results.verbosity;
 
 if ischar(seed)
     seed = str2double(seed);
@@ -95,6 +97,11 @@ end
 if numel(fields(initialConditions)) == 0 && ~isempty(initialConditionsPath)
     initialConditions = load(initialConditionsPath);
 end
+
+if ischar(verbosity)
+    verbosity = str2double(verbosity);
+end
+validateattributes(verbosity, {'numeric'}, {'integer'});
 
 %% load simulation
 sim = CachedSimulationObjectUtil.load();
@@ -120,6 +127,9 @@ elseif ~isempty(parameterValsPath)
     sim.applyAllParameters(parameterVals);
 end
 
+%verbosity
+sim.applyOptions('verbosity', verbosity);
+
 %knockout perturbations
 if iscell(geneticKnockouts)
     sim.applyOptions('geneticKnockouts', geneticKnockouts);
@@ -131,7 +141,7 @@ if ~isempty(seed)
 end
 
 %% setup loggers
-loggers = {SummaryLogger(1, 1)};
+loggers = {SummaryLogger(1, verbosity)};
 if ~isempty(outPath)
     loggers = [loggers; {HighthroughputExperimentsLogger(outPath)}];
 end
