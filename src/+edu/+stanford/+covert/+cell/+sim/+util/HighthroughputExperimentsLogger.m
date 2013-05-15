@@ -1,21 +1,39 @@
 %HighthroughputExperimentsLogger.
 % Efficiently logs several in silico experiments:
-% - Dynamics
-%   - Growth (g/s)
-%   - Mass (g)
-%   - Volume (L)
-% - Event times
-%   - Replication initiation time (s)
-%   - Replication termination time (s)
-%   - Cell cycle length (s)
-% - Averages
+% - Single-cell data
+%   - Dynamics: rows correspond to individual cells, columns correspond to timepoints 0..N (s)
+%     - Growth (g/s)
+%     - Mass (g)
+%     - Volume (L)
+%   - Event times: rows correspond to individual cells
+%     - Replication initiation time (s)
+%     - Replication termination time (s)
+%     - Cell cycle length (s)
+% - Population and time averages
 %   - Metabolite concentrations (M)
-%   - DNA-seq (freq/nt)
-%   - RNA-seq (freq/nt)
-%   - ChIP-seq (freq/nt)
+%     Rows correspond to metabolite species. Rows are labeled by
+%     Metabolite.wholeCellModelIDs
+%   - DNA-seq (DNA molecules/nt)
+%     Average DNA copy number of each 100 nt region of the chromosome. Row
+%     1 corresponds to bases 1..100, Rows 2 corresponds to bases 101..200,
+%     etc.
+%   - RNA-seq (transcripts/nt)
+%     Average number of mapped RNA transcripts of each 100 nt region of the
+%     chromosome. Row 1 corresponds to bases 1..100, row 2 corresponds to
+%     bases 101..200, etc. 
+%   - ChIP-seq (protein molecules/nt)
+%     Average DNA-bound protein density of each 100 nt region of the
+%     chromosome. Row 1 corresponds to bases 1..100, row 2 corresponds 
+%     to bases 101..200, etc. Columns corresponds to mRNA-coding genes and
+%     are labeled by gene.wholeCellModelIDs(gene.mRNAIndexs)
 %   - RNA expression array (M)
+%     Concentrations of RNA by gene. Rows correspond to genes. Rows are
+%     labeled by gene.wholeCellModelIDs.
 %   - Protein expression array (M)
+%     Concentrations of protein. Rows correspond to protein-coding genes.
+%     Rows are labeled by gene.wholeCellModelIDs(gene.mRNAIndexs).
 %   - Metabolic reaction fluxes (rxn/s/gDCW)
+%     Rows are labeled by MetabolicReaction.reactionWholeCellModelIDs
 %
 % Input:
 % - outPath [.mat file path]: file path where simulated data should be
