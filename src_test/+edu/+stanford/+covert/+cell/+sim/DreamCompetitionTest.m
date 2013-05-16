@@ -317,5 +317,36 @@ classdef DreamCompetitionTest < TestCase
             assertEqual(0, dists.parameter);
             assertEqual(0, dists.prediction);
         end
+        
+        function test_calcParameterAndPredictionScoring1(~)
+            dists = [
+                struct('parameter',  9, 'prediction',  9)
+                struct('parameter',  3, 'prediction',  3)
+                struct('parameter', 13, 'prediction', 13)
+                struct('parameter', 20, 'prediction', 20)
+                struct('parameter',  2, 'prediction',  2)
+                ];
+            
+            [~, ranks] = calcParameterAndPredictionScoring(dists);
+            assertEqual([3; 4; 2; 1; 5]', ranks');
+        end
+        
+        function test_calcParameterAndPredictionScoring2(~)
+            dists = [
+                struct('parameter',  9, 'prediction',  9)
+                struct('parameter',  3, 'prediction',  3)
+                struct('parameter', 13, 'prediction', 13)
+                struct('parameter', 20, 'prediction', 20)
+                struct('parameter',  2, 'prediction',  2)
+                struct('parameter', -1, 'prediction', -1)
+                struct('parameter', 10, 'prediction', 10)
+                struct('parameter', 99, 'prediction', 99)
+                struct('parameter', 18, 'prediction', 18)
+                struct('parameter', -7, 'prediction', -7)
+                ];
+            
+            [~, ranks] = calcParameterAndPredictionScoring(dists);
+            assertEqual([6; 7; 4; 2; 8; 9; 5; 1; 3; 10]', ranks');
+        end
     end
 end
