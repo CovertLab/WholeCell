@@ -25,16 +25,19 @@
 %   Higher value prints more output.
 %
 % Output
+% - dists [struct]: struct with two fields (parameter, prediction)
+%   containing the cacluated parameter and prediction error from comparison
+%   to the reference 
 % - avgVals [struct]: Struct containing average value of in silico
 %   experimental data
-% - labels [struct]: Struct containing row and column labels for avgVals
+% - avgValLabels [struct]: Struct containing row and column labels for avgVals
 % - If avgValsPath is set, saves average simulated in silico experimental data
 %   to .mat file
 %
 % Author: Jonathan Karr, jkarr@stanford.edu
 % Affilitation: Covert Lab, Department of Bioengineering, Stanford University
 % Last updated: 5/12/2013
-function [dists, avgVals] = averageHighthroughputExperimentsAndCalcErrors(varargin)
+function [dists, avgVals, avgValLabels] = averageHighthroughputExperimentsAndCalcErrors(varargin)
 
 %% parse inputs
 ip = inputParser();
@@ -76,7 +79,7 @@ validateattributes(verbosity, {'numeric'}, {'integer'});
 
 
 %% average simulation
-avgVals = averageHighthroughputExperiments(...
+[avgVals, avgValLabels] = averageHighthroughputExperiments(...
     'simPathPattern', simPathPattern, ...
     'avgValsPath', avgValsPath, ...
     'verbosity', verbosity ...

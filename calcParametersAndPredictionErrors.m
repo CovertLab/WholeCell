@@ -22,6 +22,11 @@
 % - refAvgValsPath: same as avgValsPath:, but for reference parameter
 %   values
 %
+% Output
+% - dists [struct]: struct with two fields (parameter, prediction)
+%   containing the cacluated parameter and prediction error from comparison
+%   to the reference 
+%
 % Author: Jonathan Karr, jkarr@stanford.edu
 % Affilitation: Covert Lab, Department of Bioengineering, Stanford University
 % Last updated: 5/12/2013
