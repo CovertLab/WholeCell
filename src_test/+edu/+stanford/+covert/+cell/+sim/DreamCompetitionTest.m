@@ -289,14 +289,14 @@ classdef DreamCompetitionTest < TestCase
             %simulate
             sim = edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil.load();
             parameterVals = sim.getAllParameters(); %get default parameters
-%             for i = 1:2
-%                 parameterVals.lengthSec = i * 10; %override defaults
-%                 simulateHighthroughputExperiments(...
-%                     'seed', i, ...
-%                     'parameterVals', parameterVals, ...
-%                     'simPath', sprintf('output/dream-sim-batch-%d.mat', i) ...
-%                     );
-%             end
+            for i = 1:2
+                parameterVals.lengthSec = i * 10; %override defaults
+                simulateHighthroughputExperiments(...
+                    'seed', i, ...
+                    'parameterVals', parameterVals, ...
+                    'simPath', sprintf('output/dream-sim-batch-%d.mat', i) ...
+                    );
+            end
             
             %average
             refParameterVals = parameterVals;
@@ -318,35 +318,72 @@ classdef DreamCompetitionTest < TestCase
             assertEqual(0, dists.prediction);
         end
         
-        function test_calcParameterAndPredictionScoring1(~)
-            dists = [
-                struct('parameter',  9, 'prediction',  9)
-                struct('parameter',  3, 'prediction',  3)
-                struct('parameter', 13, 'prediction', 13)
-                struct('parameter', 20, 'prediction', 20)
-                struct('parameter',  2, 'prediction',  2)
-                ];
+        function test_calcParameterAndPredictionScoring(~)
+            refParameterValsPath = 'output/1_1.parameters.mat';
+            refAvgValsPath = 'output/1_1.predictions.mat';
             
-            [~, ranks] = calcParameterAndPredictionScoring(dists);
-            assertEqual([3; 4; 2; 1; 5]', ranks');
-        end
-        
-        function test_calcParameterAndPredictionScoring2(~)
-            dists = [
-                struct('parameter',  9, 'prediction',  9)
-                struct('parameter',  3, 'prediction',  3)
-                struct('parameter', 13, 'prediction', 13)
-                struct('parameter', 20, 'prediction', 20)
-                struct('parameter',  2, 'prediction',  2)
-                struct('parameter', -1, 'prediction', -1)
-                struct('parameter', 10, 'prediction', 10)
-                struct('parameter', 99, 'prediction', 99)
-                struct('parameter', 18, 'prediction', 18)
-                struct('parameter', -7, 'prediction', -7)
-                ];
+            sim = edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil.load();
+            parameterVals = sim.getAllParameters(); %get default parameters
+            parameterVals.lengthSec = 10;
+            for j = 1:3
+                %save parameters
+                parameterValsPath = sprintf('output/%d_1.parameters.mat', j);
+                save(parameterValsPath, '-struct', 'parameterVals');
+                
+                for i = 1:2
+                    fprintf('Running simulation %d for batch %d\n', i, j);
+                    
+                    %simulate
+                    simulateHighthroughputExperiments(...
+                        'seed', j * 100 + i, ...
+                        'parameterValsPath', parameterValsPath, ...
+                        'simPath', sprintf('output/%d_1.predictions_%d.mat', j, i), ...
+                        'verbosity', 0 ...
+                        );
+                end
+                
+                % calculate "reference"
+                if j == 1
+                    averageHighthroughputExperiments(...
+                        'simPathPattern', sprintf('output/%d_1.predictions_*.mat', j), ...
+                        'avgValsPath', sprintf('output/%d_1.predictions.mat', j), ...
+                        'verbosity', 0 ...
+                        );
+                end
+                
+                %average
+                averageHighthroughputExperimentsAndCalcErrors(...
+                    'parameterValsPath', parameterValsPath, ...
+                    'simPathPattern', sprintf('output/%d_1.predictions_*.mat', j), ...
+                    'avgValsPath', sprintf('output/%d_1.predictions.mat', j), ...
+                    'distsPath', sprintf('output/%d_1.distances.mat', j), ...
+                    'refParameterValsPath', refParameterValsPath, ...
+                    'refAvgValsPath', refAvgValsPath, ...
+                    'verbosity', 0 ...
+                    );
+            end
             
-            [~, ranks] = calcParameterAndPredictionScoring(dists);
-            assertEqual([6; 7; 4; 2; 8; 9; 5; 1; 3; 10]', ranks');
+            %calculate scores
+            [submissionList, distances, pValues, scores, ranks] = calcParameterAndPredictionScoring(...
+                'refParameterValsPath', refParameterValsPath, ...
+                'refAvgValsPath', refAvgValsPath, ...
+                'submissionsPathBase', 'output', ...
+                'nullDistanceDistribSize', 20 ...
+                );
+            
+            assertEqual([
+                struct('user', '1', 'parameterSetTimestamp', '1')
+                struct('user', '2', 'parameterSetTimestamp', '1')
+                struct('user', '3', 'parameterSetTimestamp', '1')
+                ], submissionList);
+            
+            assertEqual([3 1], size(distances))
+            assertEqual([3 1], size(pValues))
+            assertEqual([3 1], size(scores))
+            assertEqual([3 1], size(ranks))
+            
+            assertEqual([0 0 0], [distances.parameter])
+            assertEqual([1 1 1], [pValues.parameter])
         end
     end
 end

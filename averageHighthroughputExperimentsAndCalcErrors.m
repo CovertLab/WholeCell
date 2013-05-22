@@ -46,6 +46,7 @@ ip.addParamValue('parameterVals', [], @(x) isstruct(x));
 ip.addParamValue('parameterValsPath', '', @(x) exist(x, 'file'));
 ip.addParamValue('simPathPattern', '', @(x) ischar(x));
 ip.addParamValue('avgValsPath', '', @(x) ischar(x));
+ip.addParamValue('distsPath', '', @(x) ischar(x));
 ip.addParamValue('refParameterVals', [], @(x) isstruct(x));
 ip.addParamValue('refParameterValsPath', '', @(x) exist(x, 'file'));
 ip.addParamValue('refAvgVals', [], @(x) isstruct(x));
@@ -58,6 +59,7 @@ parameterVals        = ip.Results.parameterVals;
 parameterValsPath    = ip.Results.parameterValsPath;
 simPathPattern       = ip.Results.simPathPattern;
 avgValsPath          = ip.Results.avgValsPath;
+distsPath            = ip.Results.distsPath;
 refParameterVals     = ip.Results.refParameterVals;
 refParameterValsPath = ip.Results.refParameterValsPath;
 refAvgVals           = ip.Results.refAvgVals;
@@ -90,10 +92,13 @@ dists = calcParametersAndPredictionErrors(...
     'parameterVals', parameterVals, ...
     'avgVals', avgVals, ...
     'refParameterVals', refParameterVals, ...
-    'refAvgVals', refAvgVals ...
+    'refAvgVals', refAvgVals, ...
+    'distsPath', distsPath ...
     );
 
 %% send data to Synapse (TODO)
+%- requires user id
+%- simulation id (timestamp?)
 
 function parameterVals = loadParameterVals(parameterVals, parameterValsPath)
 if ~isempty(parameterVals)
