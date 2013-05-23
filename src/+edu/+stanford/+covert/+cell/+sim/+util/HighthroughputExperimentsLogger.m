@@ -118,6 +118,7 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
         
         %Allocates space for small summary stats gathered after each segment.
         function this = initialize(this, sim)
+            %% initialize
             %indices
             this.sIdx = struct();
             this.sIdx.time       = sim.stateIndex('Time');
@@ -150,10 +151,10 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             this.idxsDnaBoundCpx(tmp) = 1:numel(tmp);
             
             %dynamics
-            this.time   = zeros(1, sim.lengthSec);
-            this.growth = zeros(1, sim.lengthSec);
-            this.mass   = zeros(1, sim.lengthSec);
-            this.volume = zeros(1, sim.lengthSec);
+            this.time   = zeros(1, sim.lengthSec + 1);
+            this.growth = zeros(1, sim.lengthSec + 1);
+            this.mass   = zeros(1, sim.lengthSec + 1);
+            this.volume = zeros(1, sim.lengthSec + 1);
             
             %event timing
             this.repInitTime  = NaN;
@@ -181,7 +182,7 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             this.metConcs.sum  = zeros(numel(this.labels.rows.metConcs), 1);
             this.dnaSeq.sum    = zeros(ceil(chr.sequenceLen / this.ntResolution), 1);
             this.rnaSeq.sum    = zeros(ceil(chr.sequenceLen / this.ntResolution), 1);
-            this.chipSeq.sum   = sparse(ceil(chr.sequenceLen / this.ntResolution), numel(this.labels.cols.chipSeq));
+            this.chipSeq.sum   = zeros(ceil(chr.sequenceLen / this.ntResolution), numel(this.labels.cols.chipSeq));
             this.rnaArray.sum  = zeros(numel(this.labels.rows.rnaArray), 1);
             this.protArray.sum = zeros(numel(this.labels.rows.protArray), 1);
             this.rxnFluxes.sum = zeros(numel(this.labels.rows.rxnFluxes), 1);
@@ -215,6 +216,9 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             this.tmpRnaSeqIntergenicCnt.sum_x2 = this.tmpRnaSeqIntergenicCnt.sum;
             this.tmpChipSeqMon.sum_x2          = this.tmpChipSeqMon.sum;
             this.tmpChipSeqCpx.sum_x2          = this.tmpChipSeqCpx.sum;
+            
+            %% log
+            this.append(sim);
         end
         
         %append
@@ -278,9 +282,9 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             end
             
             tmpDnaSeq(1:end - 1) = tmpDnaSeq(1:end - 1) / this.ntResolution;
-            tmpDnaSeq(end) = tmpDnaSeq(end) / mod(sChr.sequenceLen, this.ntResolution);
+            tmpDnaSeq(end)       = tmpDnaSeq(end)       / mod(sChr.sequenceLen, this.ntResolution);
             
-            this.dnaSeq.sum   = this.dnaSeq.sum   + tmpDnaSeq;
+            this.dnaSeq.sum    = this.dnaSeq.sum    + tmpDnaSeq;
             this.dnaSeq.sum_x2 = this.dnaSeq.sum_x2 + tmpDnaSeq .^ 2;
             
             clear tmpDnaSeq subs vals;
@@ -302,7 +306,7 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             end
             tmpSum(1:end-1) = tmpSum(1:end-1) / this.ntResolution;
             tmpSum(1:end)   = tmpSum(1:end)   / mod(sChr.sequenceLen, this.ntResolution);
-            this.tmpRnaSeqTranscripts.sum   = this.tmpRnaSeqTranscripts.sum   + tmpSum;
+            this.tmpRnaSeqTranscripts.sum    = this.tmpRnaSeqTranscripts.sum    + tmpSum;
             this.tmpRnaSeqTranscripts.sum_x2 = this.tmpRnaSeqTranscripts.sum_x2 + tmpSum .^ 2;
             
             rnas = sum(sRna.counts, 2);
@@ -345,7 +349,7 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
                 idxs = sub2ind(size(this.tmpChipSeqMon.sum), subs(tfs, 1), this.idxsDnaBoundMon(vals(tfs, 1)));
                 tmp(idxs) = tmp(idxs) + 1;
             end
-            this.tmpChipSeqMon.sum   = this.tmpChipSeqMon.sum   + tmp;
+            this.tmpChipSeqMon.sum    = this.tmpChipSeqMon.sum    + tmp;
             this.tmpChipSeqMon.sum_x2 = this.tmpChipSeqMon.sum_x2 + tmp .^ 2;
             
             [subs, vals] = find(sChr.complexBoundSites);
@@ -355,7 +359,7 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
                 idxs = sub2ind(size(this.tmpChipSeqCpx.sum), subs(tfs, 1), this.idxsDnaBoundCpx(vals(tfs, 1)));
                 tmp(idxs) = tmp(idxs) + 1;
             end
-            this.tmpChipSeqCpx.sum   = this.tmpChipSeqCpx.sum   + tmp;
+            this.tmpChipSeqCpx.sum    = this.tmpChipSeqCpx.sum    + tmp;
             this.tmpChipSeqCpx.sum_x2 = this.tmpChipSeqCpx.sum_x2 + tmp .^ 2;
             
             clear subs vals tfs idxs tmp;
@@ -401,12 +405,13 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             clear tmpProt mons cpxs protComp;
             
             %reaction fluxes
+            tmpFluxes = sMr.fluxs / sum(sMass.cellDry);
             this.rxnFluxes.sum = ...
                 + this.rxnFluxes.sum ...
-                + sMr.fluxs / sum(sMass.cellDry);
+                + tmpFluxes;
             this.rxnFluxes.sum_x2 = ...
                 + this.rxnFluxes.sum_x2 ...
-                + (sMr.fluxs / sum(sMass.cellDry)) .^ 2;
+                + tmpFluxes .^ 2;
         end
         
         %finalizes log
@@ -417,38 +422,81 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             chr = sim.states{this.sIdx.chromosome};
             rna = sim.states{this.sIdx.rna};
             pc  = sim.states{this.sIdx.protcpx};
-            trn = sim.states{this.sIdx.transcript};
+            trn = sim.states{this.sIdx.transcript};            
+            
+            %% average over time
+            %calculate means and variances 
+            nTime = numel(this.time);
+            
+            this.metConcs.mean  = 1 / nTime * this.metConcs.sum;
+            this.dnaSeq.mean    = 1 / nTime * this.dnaSeq.sum;            
+            this.rnaArray.mean  = 1 / nTime * this.rnaArray.sum;
+            this.protArray.mean = 1 / nTime * this.protArray.sum;
+            this.rxnFluxes.mean = 1 / nTime * this.rxnFluxes.sum;
+            
+            this.metConcs.exp_x2  = 1 / nTime * this.metConcs.sum_x2;
+            this.dnaSeq.exp_x2    = 1 / nTime * this.dnaSeq.sum_x2;            
+            this.rnaArray.exp_x2  = 1 / nTime * this.rnaArray.sum_x2;
+            this.protArray.exp_x2 = 1 / nTime * this.protArray.sum_x2;
+            this.rxnFluxes.exp_x2 = 1 / nTime * this.rxnFluxes.sum_x2;
+            
+            this.metConcs.std  = sqrt(max(0, this.metConcs.exp_x2  - this.metConcs.mean  .^ 2));
+            this.dnaSeq.std    = sqrt(max(0, this.dnaSeq.exp_x2    - this.dnaSeq.mean    .^ 2));            
+            this.rnaArray.std  = sqrt(max(0, this.rnaArray.exp_x2  - this.rnaArray.mean  .^ 2));
+            this.protArray.std = sqrt(max(0, this.protArray.exp_x2 - this.protArray.mean .^ 2));
+            this.rxnFluxes.std = sqrt(max(0, this.rxnFluxes.exp_x2 - this.rxnFluxes.mean .^ 2));
+            
+            this.metConcs  = rmfield(this.metConcs,  {'sum', 'sum_x2', 'exp_x2'});
+            this.dnaSeq    = rmfield(this.dnaSeq,    {'sum', 'sum_x2', 'exp_x2'});            
+            this.rnaArray  = rmfield(this.rnaArray,  {'sum', 'sum_x2', 'exp_x2'});
+            this.protArray = rmfield(this.protArray, {'sum', 'sum_x2', 'exp_x2'});
+            this.rxnFluxes = rmfield(this.rxnFluxes, {'sum', 'sum_x2', 'exp_x2'});
             
             %RNA seq
-            tmpRnaSeqNascent    = struct('sum', [], 'sum_x2', []);
-            tmpRnaSeqProcessed  = struct('sum', [], 'sum_x2', []);
-            tmpRnaSeqIntergenic = struct('sum', [], 'sum_x2', []);
+            this.tmpRnaSeqTranscripts.mean   = 1 / nTime * this.tmpRnaSeqTranscripts.sum;
+            this.tmpRnaSeqNascentCnt.mean    = 1 / nTime * this.tmpRnaSeqNascentCnt.sum;
+            this.tmpRnaSeqProcessedCnt.mean  = 1 / nTime * this.tmpRnaSeqProcessedCnt.sum; 
+            this.tmpRnaSeqIntergenicCnt.mean = 1 / nTime * this.tmpRnaSeqIntergenicCnt.sum; 
             
-            tmpRnaSeqNascent.sum    = zeros(ceil(chr.sequenceLen / this.ntResolution), 1);
-            tmpRnaSeqProcessed.sum  = zeros(ceil(chr.sequenceLen / this.ntResolution), 1);
-            tmpRnaSeqIntergenic.sum = zeros(ceil(chr.sequenceLen / this.ntResolution), 1);
+            this.tmpRnaSeqTranscripts.exp_x2   = 1 / nTime * this.tmpRnaSeqTranscripts.sum_x2; 
+            this.tmpRnaSeqNascentCnt.exp_x2    = 1 / nTime * this.tmpRnaSeqNascentCnt.sum_x2; 
+            this.tmpRnaSeqProcessedCnt.exp_x2  = 1 / nTime * this.tmpRnaSeqProcessedCnt.sum_x2; 
+            this.tmpRnaSeqIntergenicCnt.exp_x2 = 1 / nTime * this.tmpRnaSeqIntergenicCnt.sum_x2; 
             
-            tmpRnaSeqNascent.sum_x2    = tmpRnaSeqNascent.sum;
-            tmpRnaSeqProcessed.sum_x2  = tmpRnaSeqProcessed.sum;
-            tmpRnaSeqIntergenic.sum_x2 = tmpRnaSeqIntergenic.sum;
+            this.tmpRnaSeqTranscripts.var   = max(0, this.tmpRnaSeqTranscripts.exp_x2 - this.tmpRnaSeqTranscripts.mean .^ 2);
+            this.tmpRnaSeqNascentCnt.var    = max(0, this.tmpRnaSeqNascentCnt.exp_x2 - this.tmpRnaSeqNascentCnt.mean .^ 2);
+            this.tmpRnaSeqProcessedCnt.var  = max(0, this.tmpRnaSeqProcessedCnt.exp_x2 - this.tmpRnaSeqProcessedCnt.mean .^ 2); 
+            this.tmpRnaSeqIntergenicCnt.var = max(0, this.tmpRnaSeqIntergenicCnt.exp_x2 - this.tmpRnaSeqIntergenicCnt.mean .^ 2); 
+                        
+            tmpRnaSeqNascent    = struct('mean', [], 'var', []);
+            tmpRnaSeqProcessed  = struct('mean', [], 'var', []);
+            tmpRnaSeqIntergenic = struct('mean', [], 'var', []);
+            
+            tmpRnaSeqNascent.mean    = zeros(ceil(chr.sequenceLen / this.ntResolution), 1);
+            tmpRnaSeqProcessed.mean  = zeros(ceil(chr.sequenceLen / this.ntResolution), 1);
+            tmpRnaSeqIntergenic.mean = zeros(ceil(chr.sequenceLen / this.ntResolution), 1);
+            
+            tmpRnaSeqNascent.var    = tmpRnaSeqNascent.mean;
+            tmpRnaSeqProcessed.var  = tmpRnaSeqProcessed.mean;
+            tmpRnaSeqIntergenic.var = tmpRnaSeqIntergenic.mean;
             
             for i = size(this.tmpRnaSeqNascentCnt)
                 fivePrime = trn.transcriptionUnitFivePrimeCoordinates(i);
                 dir = trn.transcriptionUnitDirections(i);
                 len = trn.transcriptionUnitLengths(i);
                 
-                tmpRnaSeqNascent.sum = this.addDownsampled(tmpRnaSeqNascent.sum, ...
-                    fivePrime, dir, len, this.tmpRnaSeqNascentCnt.sum(i));
-                tmpRnaSeqNascent.sum_x2 = this.addDownsampled(tmpRnaSeqNascent.sum_x2, ...
-                    fivePrime, dir, len, this.tmpRnaSeqNascentCnt.sum_x2(i));
+                tmpRnaSeqNascent.mean = this.addDownsampled(tmpRnaSeqNascent.mean, ...
+                    fivePrime, dir, len, this.tmpRnaSeqNascentCnt.mean(i));
+                tmpRnaSeqNascent.var = this.addDownsampled(tmpRnaSeqNascent.var, ...
+                    fivePrime, dir, len, this.tmpRnaSeqNascentCnt.var(i));
                 
                 pIdxs = find(rna.nascentRNAMatureRNAComposition(:, i));
                 iIdxs = find(rna.intergenicRNAMatrix(:, i));
                 if isscalar(pIdxs)
-                    tmpRnaSeqProcessed.sum = this.addDownsampled(tmpRnaSeqProcessed.sum, ...
-                        fivePrime, dir, len, this.tmpRnaSeqProcessedCnt.sum(pIdxs));
-                    tmpRnaSeqProcessed.sum_x2 = this.addDownsampled(tmpRnaSeqProcessed.sum_x2, ...
-                        fivePrime, dir, len, this.tmpRnaSeqProcessedCnt.sum_x2(pIdxs));
+                    tmpRnaSeqProcessed.mean = this.addDownsampled(tmpRnaSeqProcessed.mean, ...
+                        fivePrime, dir, len, this.tmpRnaSeqProcessedCnt.mean(pIdxs));
+                    tmpRnaSeqProcessed.var = this.addDownsampled(tmpRnaSeqProcessed.var, ...
+                        fivePrime, dir, len, this.tmpRnaSeqProcessedCnt.var(pIdxs));
                 else
                     for j = 1:numel(pIdxs)
                         gIdx = g.getIndexs(rna.wholeCellModelIDs{rna.processedIndexs(pIdxs(j))});
@@ -459,148 +507,36 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
                             len = g.startCoordinates(gIdx) - start;
                             validateattributes(len, {'numeric'}, {'nonnegative'});
                             
-                            tmpRnaSeqIntergenic.sum = this.addDownsampled(tmpRnaSeqIntergenic.sum, ...
-                                fivePrime, dir, len, this.tmpRnaSeqIntergenicCnt.sum(iIdxs(j - 1)));
-                            tmpRnaSeqIntergenic.sum_x2 = this.addDownsampled(tmpRnaSeqIntergenic.sum_x2, ...
-                                fivePrime, dir, len, this.tmpRnaSeqIntergenicCnt.sum_x2(iIdxs(j - 1)));
+                            tmpRnaSeqIntergenic.mean = this.addDownsampled(tmpRnaSeqIntergenic.mean, ...
+                                fivePrime, dir, len, this.tmpRnaSeqIntergenicCnt.mean(iIdxs(j - 1)));
+                            tmpRnaSeqIntergenic.var = this.addDownsampled(tmpRnaSeqIntergenic.var, ...
+                                fivePrime, dir, len, this.tmpRnaSeqIntergenicCnt.var(iIdxs(j - 1)));
                         end
                         
                         start = g.startCoordinates(gIdx);
                         len = g.lengths(gIdx);
-                        tmpRnaSeqProcessed.sum = this.addDownsampled(tmpRnaSeqProcessed.sum, ...
-                            fivePrime, dir, len, this.tmpRnaSeqProcessedCnt.sum(pIdxs(j)));
-                        tmpRnaSeqProcessed.sum_x2 = this.addDownsampled(tmpRnaSeqProcessed.sum_x2, ...
-                            fivePrime, dir, len, this.tmpRnaSeqProcessedCnt.sum_x2(pIdxs(j)));
+                        tmpRnaSeqProcessed.mean = this.addDownsampled(tmpRnaSeqProcessed.mean, ...
+                            fivePrime, dir, len, this.tmpRnaSeqProcessedCnt.mean(pIdxs(j)));
+                        tmpRnaSeqProcessed.var = this.addDownsampled(tmpRnaSeqProcessed.var, ...
+                            fivePrime, dir, len, this.tmpRnaSeqProcessedCnt.var(pIdxs(j)));
                     end
                 end
             end
             
-            tmpRnaSeqNascent.sum(   1:end-1) = tmpRnaSeqNascent.sum(   1:end-1) / this.ntResolution;
-            tmpRnaSeqProcessed.sum( 1:end-1) = tmpRnaSeqProcessed.sum( 1:end-1) / this.ntResolution;
-            tmpRnaSeqIntergenic.sum(1:end-1) = tmpRnaSeqIntergenic.sum(1:end-1) / this.ntResolution;
-            tmpRnaSeqNascent.sum(   1:end)   = tmpRnaSeqNascent.sum(   1:end)   / mod(chr.sequenceLen, this.ntResolution);
-            tmpRnaSeqProcessed.sum( 1:end)   = tmpRnaSeqProcessed.sum( 1:end)   / mod(chr.sequenceLen, this.ntResolution);
-            tmpRnaSeqIntergenic.sum(1:end)   = tmpRnaSeqIntergenic.sum(1:end)   / mod(chr.sequenceLen, this.ntResolution);
+            tmpRnaSeqNascent.mean(   1:end-1) = tmpRnaSeqNascent.mean(   1:end-1) / this.ntResolution;
+            tmpRnaSeqProcessed.mean( 1:end-1) = tmpRnaSeqProcessed.mean( 1:end-1) / this.ntResolution;
+            tmpRnaSeqIntergenic.mean(1:end-1) = tmpRnaSeqIntergenic.mean(1:end-1) / this.ntResolution;
+            tmpRnaSeqNascent.mean(   1:end)   = tmpRnaSeqNascent.mean(   1:end)   / mod(chr.sequenceLen, this.ntResolution);
+            tmpRnaSeqProcessed.mean( 1:end)   = tmpRnaSeqProcessed.mean( 1:end)   / mod(chr.sequenceLen, this.ntResolution);
+            tmpRnaSeqIntergenic.mean(1:end)   = tmpRnaSeqIntergenic.mean(1:end)   / mod(chr.sequenceLen, this.ntResolution);
             
-            tmpRnaSeqNascent.sum_x2(   1:end-1) = tmpRnaSeqNascent.sum_x2(   1:end-1) / (this.ntResolution ^ 2);
-            tmpRnaSeqProcessed.sum_x2( 1:end-1) = tmpRnaSeqProcessed.sum_x2( 1:end-1) / (this.ntResolution ^ 2);
-            tmpRnaSeqIntergenic.sum_x2(1:end-1) = tmpRnaSeqIntergenic.sum_x2(1:end-1) / (this.ntResolution ^ 2);
-            tmpRnaSeqNascent.sum_x2(   1:end)   = tmpRnaSeqNascent.sum_x2(   1:end)   / (mod(chr.sequenceLen, this.ntResolution) ^ 2);
-            tmpRnaSeqProcessed.sum_x2( 1:end)   = tmpRnaSeqProcessed.sum_x2( 1:end)   / (mod(chr.sequenceLen, this.ntResolution) ^ 2);
-            tmpRnaSeqIntergenic.sum_x2(1:end)   = tmpRnaSeqIntergenic.sum_x2(1:end)   / (mod(chr.sequenceLen, this.ntResolution) ^ 2);
-            
-            %ChIP seq
-            nMon = size(this.tmpChipSeqMon.sum, 2);
-            nCpx = size(this.tmpChipSeqCpx.sum, 2);
-            
-            idxs = find(this.idxsDnaBoundMon);
-            for i = 1:nMon
-                if any(this.tmpChipSeqMon.sum(:, i))
-                    tmp = sum(reshape([
-                        cconv(full(this.tmpChipSeqMon.sum(:, i)), ones(chr.monomerDNAFootprints(idxs(i)), 1), chr.sequenceLen)
-                        zeros(-mod(chr.sequenceLen, -this.ntResolution), 1)
-                        ], this.ntResolution, []), 1)';
-                    tmp(1:end-1) = tmp(1:end-1) / this.ntResolution;
-                    tmp(end)     = tmp(end)     / mod(chr.sequenceLen, this.ntResolution);
-                    this.chipSeq.sum(:, idxs(i)) = ...
-                        + this.chipSeq.sum(:, idxs(i)) ...
-                        + tmp;
-                    this.tmpChipSeqMon.sum(:, i) = 0;
-                    
-                    tmp = sum(reshape([
-                        cconv(full(this.tmpChipSeqMon.sum_x2(:, i)), ones(chr.monomerDNAFootprints(idxs(i)), 1), chr.sequenceLen)
-                        zeros(-mod(chr.sequenceLen, -this.ntResolution), 1)
-                        ], this.ntResolution, []), 1)';
-                    tmp(1:end-1) = tmp(1:end-1) / this.ntResolution;
-                    tmp(end)     = tmp(end)     / mod(chr.sequenceLen, this.ntResolution);
-                    this.chipSeq.sum_x2(:, idxs(i)) = ...
-                        + this.chipSeq.sum_x2(:, idxs(i)) ...
-                        + tmp;
-                    this.tmpChipSeqMon.sum_x2(:, i) = 0;
-                end
-            end
-            
-            idxs = find(this.idxsDnaBoundCpx);
-            protComp = sparse(sum(pc.proteinComplexComposition(g.mRNAIndexs, idxs, :), 3));
-            for i = 1:nCpx
-                if any(this.tmpChipSeqCpx.sum(:, i))
-                    tmp1 = sum(reshape([
-                        cconv(full(this.tmpChipSeqCpx.sum(:, i)), ones(chr.complexDNAFootprints(idxs(i)), 1), chr.sequenceLen)
-                        zeros(-mod(chr.sequenceLen, -this.ntResolution), 1)
-                        ], this.ntResolution, []), 1)';
-                    tmp1(1:end-1) = tmp1(1:end-1) / this.ntResolution;
-                    tmp1(end)     = tmp1(end)     / mod(chr.sequenceLen, this.ntResolution);
-                    
-                    tmp2 = sum(reshape([
-                        cconv(full(this.tmpChipSeqCpx.sum_x2(:, i)), ones(chr.complexDNAFootprints(idxs(i)), 1), chr.sequenceLen)
-                        zeros(-mod(chr.sequenceLen, -this.ntResolution), 1)
-                        ], this.ntResolution, []), 1)';
-                    tmp2(1:end-1) = tmp2(1:end-1) / this.ntResolution;
-                    tmp2(end)     = tmp2(end)     / mod(chr.sequenceLen, this.ntResolution);
-                    
-                    this.tmpChipSeqCpx.sum(:, i) = 0;
-                    this.tmpChipSeqCpx.sum_x2(:, i) = 0;
-                    
-                    monIdxs = find(protComp(:, i));
-                    for j = 1:numel(monIdxs)
-                        this.chipSeq.sum(:, monIdxs(j)) = ...
-                            + this.chipSeq.sum(:, monIdxs(j)) ...
-                            + tmp1 * protComp(monIdxs(j), i);
-                        this.chipSeq.sum_x2(:, monIdxs(j)) = ...
-                            + this.chipSeq.sum_x2(:, monIdxs(j)) ...
-                            + tmp2 * protComp(monIdxs(j), i);
-                    end
-                end
-            end
-            
-            %% average over time
-            %calculate means and variances 
-            nTime = numel(this.time);
-            
-            this.metConcs.mean  = 1 / nTime * this.metConcs.sum;
-            this.dnaSeq.mean    = 1 / nTime * this.dnaSeq.sum;
-            this.chipSeq.mean   = 1 / nTime * this.chipSeq.sum;
-            this.rnaArray.mean  = 1 / nTime * this.rnaArray.sum;
-            this.protArray.mean = 1 / nTime * this.protArray.sum;
-            this.rxnFluxes.mean = 1 / nTime * this.rxnFluxes.sum;
-            
-            this.metConcs.exp_x2  = 1 / nTime * this.metConcs.sum_x2;
-            this.dnaSeq.exp_x2    = 1 / nTime * this.dnaSeq.sum_x2;
-            this.chipSeq.exp_x2   = 1 / nTime * this.chipSeq.sum_x2;
-            this.rnaArray.exp_x2  = 1 / nTime * this.rnaArray.sum_x2;
-            this.protArray.exp_x2 = 1 / nTime * this.protArray.sum_x2;
-            this.rxnFluxes.exp_x2 = 1 / nTime * this.rxnFluxes.sum_x2;
-            
-            this.metConcs.std  = sqrt(this.metConcs.exp_x2  - this.metConcs.mean  .^ 2);
-            this.dnaSeq.std    = sqrt(this.dnaSeq.exp_x2    - this.dnaSeq.mean    .^ 2);
-            this.chipSeq.std   = sqrt(this.chipSeq.exp_x2   - this.chipSeq.mean   .^ 2);
-            this.rnaArray.std  = sqrt(this.rnaArray.exp_x2  - this.rnaArray.mean  .^ 2);
-            this.protArray.std = sqrt(this.protArray.exp_x2 - this.protArray.mean .^ 2);
-            this.rxnFluxes.std = sqrt(this.rxnFluxes.exp_x2 - this.rxnFluxes.mean .^ 2);
-            
-            this.metConcs  = rmfield(this.metConcs,  {'sum', 'sum_x2', 'exp_x2'});
-            this.dnaSeq    = rmfield(this.dnaSeq,    {'sum', 'sum_x2', 'exp_x2'});
-            this.chipSeq   = rmfield(this.chipSeq,   {'sum', 'sum_x2', 'exp_x2'});
-            this.rnaArray  = rmfield(this.rnaArray,  {'sum', 'sum_x2', 'exp_x2'});
-            this.protArray = rmfield(this.protArray, {'sum', 'sum_x2', 'exp_x2'});
-            this.rxnFluxes = rmfield(this.rxnFluxes, {'sum', 'sum_x2', 'exp_x2'});
-            
-            %RNA seq
-            this.tmpRnaSeqTranscripts.mean = 1 / nTime * this.tmpRnaSeqTranscripts.sum;
-            tmpRnaSeqNascent.mean          = 1 / nTime * tmpRnaSeqNascent.sum;
-            tmpRnaSeqProcessed.mean        = 1 / nTime * tmpRnaSeqProcessed.sum;
-            tmpRnaSeqIntergenic.mean       = 1 / nTime * tmpRnaSeqIntergenic.sum;
-            
-            this.tmpRnaSeqTranscripts.exp_x2 = 1 / nTime * this.tmpRnaSeqTranscripts.sum_x2;
-            tmpRnaSeqNascent.exp_x2          = 1 / nTime * tmpRnaSeqNascent.sum_x2;
-            tmpRnaSeqProcessed.exp_x2        = 1 / nTime * tmpRnaSeqProcessed.sum_x2;
-            tmpRnaSeqIntergenic.exp_x2       = 1 / nTime * tmpRnaSeqIntergenic.sum_x2;
-            
-            this.tmpRnaSeqTranscripts.var    = this.tmpRnaSeqTranscripts.exp_x2 - this.tmpRnaSeqTranscripts.mean .^ 2;
-            tmpRnaSeqNascent.var             = tmpRnaSeqNascent.exp_x2          - tmpRnaSeqNascent.mean          .^ 2;
-            tmpRnaSeqProcessed.var           = tmpRnaSeqProcessed.exp_x2        - tmpRnaSeqProcessed.mean        .^ 2;
-            tmpRnaSeqIntergenic.var          = tmpRnaSeqIntergenic.exp_x2       - tmpRnaSeqIntergenic.mean       .^ 2;
-            
+            tmpRnaSeqNascent.var(   1:end-1) = tmpRnaSeqNascent.var(   1:end-1) / (this.ntResolution ^ 2);
+            tmpRnaSeqProcessed.var( 1:end-1) = tmpRnaSeqProcessed.var( 1:end-1) / (this.ntResolution ^ 2);
+            tmpRnaSeqIntergenic.var(1:end-1) = tmpRnaSeqIntergenic.var(1:end-1) / (this.ntResolution ^ 2);
+            tmpRnaSeqNascent.var(   1:end)   = tmpRnaSeqNascent.var(   1:end)   / (mod(chr.sequenceLen, this.ntResolution) ^ 2);
+            tmpRnaSeqProcessed.var( 1:end)   = tmpRnaSeqProcessed.var( 1:end)   / (mod(chr.sequenceLen, this.ntResolution) ^ 2);
+            tmpRnaSeqIntergenic.var(1:end)   = tmpRnaSeqIntergenic.var(1:end)   / (mod(chr.sequenceLen, this.ntResolution) ^ 2);
+
             this.rnaSeq.mean = ...
                 + this.tmpRnaSeqTranscripts.mean ...
                 + tmpRnaSeqNascent.mean ...
@@ -612,6 +548,34 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
                 + tmpRnaSeqProcessed.var ...
                 + tmpRnaSeqIntergenic.var ...
                 );
+                        
+            this.tmpRnaSeqTranscripts   = [];
+            this.tmpRnaSeqNascentCnt    = [];
+            this.tmpRnaSeqProcessedCnt  = [];
+            this.tmpRnaSeqIntergenicCnt = [];
+            this.rnaSeq = rmfield(this.rnaSeq, {'sum', 'sum_x2'});
+            
+            %ChIP seq
+            this.tmpChipSeqMon.mean   = 1 / nTime * this.tmpChipSeqMon.sum;
+            this.tmpChipSeqMon.exp_x2 = 1 / nTime * this.tmpChipSeqMon.sum_x2;
+            this.tmpChipSeqMon.var    = max(0, this.tmpChipSeqMon.exp_x2 - this.tmpChipSeqMon.mean .^ 2);
+            
+            this.tmpChipSeqCpx.mean   = 1 / nTime * this.tmpChipSeqCpx.sum;
+            this.tmpChipSeqCpx.exp_x2 = 1 / nTime * this.tmpChipSeqCpx.sum_x2;
+            this.tmpChipSeqCpx.var    = max(0, this.tmpChipSeqCpx.exp_x2 - this.tmpChipSeqCpx.mean .^ 2);
+            
+            pcComp = sum(pc.proteinComplexComposition(g.mRNAIndexs, :, :), 3)';
+            this.chipSeq.mean = ...
+                + this.avgFootprintDownsampled(this.tmpChipSeqMon.mean, this.idxsDnaBoundMon, chr.monomerDNAFootprints, this.ntResolution) ...
+                + this.avgFootprintDownsampled(this.tmpChipSeqCpx.mean, this.idxsDnaBoundCpx, chr.complexDNAFootprints, this.ntResolution) * pcComp;
+            this.chipSeq.std  = sqrt(...
+                + this.avgFootprintDownsampled(this.tmpChipSeqMon.var, this.idxsDnaBoundMon, chr.monomerDNAFootprints, this.ntResolution) ...
+                + this.avgFootprintDownsampled(this.tmpChipSeqCpx.var, this.idxsDnaBoundCpx, chr.complexDNAFootprints, this.ntResolution) * pcComp ...
+                );
+            
+            this.tmpChipSeqMon = [];
+            this.tmpChipSeqCpx = [];
+            this.chipSeq = rmfield(this.chipSeq, {'sum', 'sum_x2'});
             
             %% save
             data = struct(...
@@ -632,7 +596,7 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
                 'labels',       this.labels ...
                 ); %#ok<NASGU>
             save(this.simPath, '-struct', 'data');
-        end
+        end        
     end
     
     methods (Static = true)
@@ -807,11 +771,38 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             startSeg = ceil(startCoor / HighthroughputExperimentsLogger.ntResolution);
             endSeg = ceil(endCoor / HighthroughputExperimentsLogger.ntResolution);
             
-            arr(startSeg) = arr(startSeg) - mod(startCoor, -HighthroughputExperimentsLogger.ntResolution) * val;
-            arr(endSeg)   = arr(endSeg)   + mod(endCoor,    HighthroughputExperimentsLogger.ntResolution) * val;
+            arr(startSeg) = arr(startSeg) + val * (HighthroughputExperimentsLogger.ntResolution - mod(startCoor, HighthroughputExperimentsLogger.ntResolution) + 1);
+            arr(endSeg)   = arr(endSeg)   + val *                                                 mod(endCoor,   HighthroughputExperimentsLogger.ntResolution);
             arr(startSeg+1:endSeg-1) = ...
                 + arr(startSeg+1:endSeg-1) ...
                 + HighthroughputExperimentsLogger.ntResolution * val;
+        end
+        
+        function downSampArr = avgFootprintDownsampled(fullSampArr, protToBoundProtIdxs, footprints, downSampleSize)
+            L = size(fullSampArr, 1);
+            idxs = find(protToBoundProtIdxs);
+            downSampArr = zeros(ceil(L / downSampleSize), numel(protToBoundProtIdxs));
+            for i = 1:numel(idxs)
+                if any(fullSampArr(:, i))
+                    tmpFull = full([
+                        fullSampArr(end-1000+1:end, i)
+                        fullSampArr(:, i)
+                        fullSampArr(1:1000, i)
+                        ]);
+                    tmpFullConv = conv(tmpFull, ones(footprints(idxs(i)), 1), 'same');
+                    
+                    tmpDown = sum(reshape([
+                        tmpFullConv(1001:end-1000)
+                        zeros(-mod(L, -downSampleSize), 1)
+                        ], downSampleSize, []), 1)';
+                    tmpDown(1:end-1) = tmpDown(1:end-1) / downSampleSize;
+                    tmpDown(end)     = tmpDown(end)     / mod(L, downSampleSize);
+                    
+                    downSampArr(:, idxs(i)) = ...
+                        + downSampArr(:, idxs(i)) ...
+                        + tmpDown;
+                end
+            end
         end
     end
 end

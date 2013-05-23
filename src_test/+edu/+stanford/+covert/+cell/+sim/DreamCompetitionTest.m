@@ -286,23 +286,89 @@ classdef DreamCompetitionTest < TestCase
         end
         
         function test_averageHighthroughputExperimentsAndCalcErrors(~)
-            %simulate
+            %% simulate
             sim = edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil.load();
+            mass = sim.state('Mass');
+            
             parameterVals = sim.getAllParameters(); %get default parameters
-            for i = 1:2
+            nSimulations = 2;
+            for i = 1:nSimulations
                 parameterVals.lengthSec = i * 10; %override defaults
                 simulateHighthroughputExperiments(...
                     'seed', i, ...
                     'parameterVals', parameterVals, ...
                     'simPath', sprintf('output/dream-sim-batch-%d.mat', i) ...
                     );
+                
+                % validate sim
+                simVals = load(sprintf('output/dream-sim-batch-%d.mat', i));
+                
+                assertEqual(0:i*10, simVals.time);
+                assertEqual([1 i*10+1], size(simVals.growth))
+                assertEqual([1 i*10+1], size(simVals.mass))
+                assertEqual([1 i*10+1], size(simVals.volume))
+                assertTrue(all(isreal(simVals.growth) & isfinite(simVals.growth)))
+                assertElementsAlmostEqual(mass.cellInitialDryWeight / (1 - mass.fractionWetWeight) * ones(1, i*10+1), simVals.mass);
+                assertTrue(all(isreal(simVals.volume) & isfinite(simVals.volume)))
+                
+                assertTrue(isscalar(simVals.repInitTime))
+                assertTrue(isscalar(simVals.repTermTime))
+                assertTrue(isscalar(simVals.cellCycleLen))
+                
+                assertTrue(all(isreal(simVals.metConcs.mean) & isfinite(simVals.metConcs.mean) & simVals.metConcs.mean >= 0))
+                assertTrue(all(isreal(simVals.metConcs.std) & isfinite(simVals.metConcs.std) & simVals.metConcs.std >= 0))
+                
+                assertTrue(all(isreal(simVals.dnaSeq.mean) & isfinite(simVals.dnaSeq.mean) & simVals.dnaSeq.mean >= 0))
+                assertTrue(all(isreal(simVals.dnaSeq.std) & isfinite(simVals.dnaSeq.std) & simVals.dnaSeq.std >= 0))
+                assertEqual(2, min(simVals.dnaSeq.mean))
+                assertEqual(0, min(simVals.dnaSeq.std))
+                
+                assertTrue(all(isreal(simVals.rnaSeq.mean) & isfinite(simVals.rnaSeq.mean) & simVals.rnaSeq.mean >= 0))
+                assertTrue(all(isreal(simVals.rnaSeq.std) & isfinite(simVals.rnaSeq.std) & simVals.rnaSeq.std >= 0))
+                
+                assertTrue(all(all(isreal(simVals.chipSeq.mean) & isfinite(simVals.chipSeq.mean) & simVals.chipSeq.mean >= 0)))
+                assertTrue(all(all(isreal(simVals.chipSeq.std) & isfinite(simVals.chipSeq.std) & simVals.chipSeq.std >= 0)))
+                
+                assertTrue(all(isreal(simVals.rnaArray.mean) & isfinite(simVals.rnaArray.mean) & simVals.rnaArray.mean >= 0))
+                assertTrue(all(isreal(simVals.rnaArray.std) & isfinite(simVals.rnaArray.std) & simVals.rnaArray.std >= 0))
+                
+                assertTrue(all(isreal(simVals.protArray.mean) & isfinite(simVals.protArray.mean) & simVals.protArray.mean >= 0))
+                assertTrue(all(isreal(simVals.protArray.std) & isfinite(simVals.protArray.std) & simVals.protArray.std >= 0))
+                
+                assertTrue(all(isreal(simVals.rxnFluxes.mean) & isfinite(simVals.rxnFluxes.mean)))
+                assertTrue(all(isreal(simVals.rxnFluxes.std) & isfinite(simVals.rxnFluxes.std) & simVals.rxnFluxes.std >= 0))
             end
             
-            %average
+            %% average
             refParameterVals = parameterVals;
             refAvgVals = averageHighthroughputExperiments('simPathPattern', 'output/dream-sim-batch-*.mat');
             
-            %average
+            assertEqual([nSimulations 21], size(refAvgVals.growth))
+            assertEqual([nSimulations 21], size(refAvgVals.mass))
+            assertEqual([nSimulations 21], size(refAvgVals.volume))
+            assertEqual([nSimulations 1], size(refAvgVals.repInitTime))
+            assertEqual([nSimulations 1], size(refAvgVals.repTermTime))
+            assertEqual([nSimulations 1], size(refAvgVals.cellCycleLen))
+            assertAllEqual(false, isnan(refAvgVals.growth(nSimulations, :)))
+            assertAllEqual(false, isnan(refAvgVals.mass(nSimulations, :)))
+            assertAllEqual(false, isnan(refAvgVals.volume(nSimulations, :)))
+            assertAllEqual(NaN, refAvgVals.repTermTime)
+            assertAllEqual(NaN, refAvgVals.cellCycleLen)
+            
+            propNames = {'metConcs'; 'dnaSeq'; 'rnaSeq'; 'chipSeq'; 'rnaArray'; 'protArray'; 'rxnFluxes'};
+            for i = 1:numel(propNames)
+                assertTrue(all(all(isreal(refAvgVals.(propNames{i}).mean))));
+                assertTrue(all(all(isfinite(refAvgVals.(propNames{i}).mean))));
+                if ~strcmp(propNames{i}, 'rxnFluxes')
+                    assertTrue(all(all(refAvgVals.(propNames{i}).mean >= 0)));
+                end
+                
+                assertTrue(all(all(isreal(refAvgVals.(propNames{i}).std))));
+                assertTrue(all(all(isfinite(refAvgVals.(propNames{i}).std))));
+                assertTrue(all(all(refAvgVals.(propNames{i}).std >= 0)));
+            end
+            
+            %% calculate distances from "reference"
             [dists, avgVals] = averageHighthroughputExperimentsAndCalcErrors(...
                 'parameterVals', parameterVals, ...
                 'simPathPattern', 'output/dream-sim-batch-*.mat', ...
@@ -331,7 +397,7 @@ classdef DreamCompetitionTest < TestCase
                 save(parameterValsPath, '-struct', 'parameterVals');
                 
                 for i = 1:2
-                    fprintf('Running simulation %d for batch %d\n', i, j);
+                    %fprintf('Running simulation %d for batch %d\n', i, j);
                     
                     %simulate
                     simulateHighthroughputExperiments(...
@@ -382,8 +448,16 @@ classdef DreamCompetitionTest < TestCase
             assertEqual([3 1], size(scores))
             assertEqual([3 1], size(ranks))
             
-            assertEqual([0 0 0], [distances.parameter])
-            assertEqual([1 1 1], [pValues.parameter])
+            assertAllEqual(0, [distances.parameter])
+            assertAllEqual(1/20, [pValues.parameter])
+            
+            assertEqual(0, distances(1).prediction)
+            assertEqual(1/20, pValues(1).prediction)
+            assertAllEqual(true, [distances(2:end).prediction] > 0)
+            assertAllEqual(true, [pValues(2:end).prediction] > 0)
+            assertAllEqual(true, scores(2:end) < scores(1))
+            
+            assertEqual(1, ranks(1))
         end
     end
 end

@@ -17,4 +17,4 @@
 % Affilitation: Covert Lab, Department of Bioengineering, Stanford University
 % Last updated: 5/12/2013
 function [submissionList, distances, pValues, scores, ranks] = calcParameterAndPredictionScoring(varargin)
-[submissionList, distances, pValues, scores, ranks]  = edu.stanford.covert.cell.sim.util.DreamScoring.calcScores(varargin{:});
+[submissionList, distances, pValues, scores, ranks] = edu.stanford.covert.cell.sim.util.DreamScoring.calcScores(varargin{:});

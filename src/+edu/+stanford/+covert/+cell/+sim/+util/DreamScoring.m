@@ -225,8 +225,7 @@ classdef DreamScoring
                         throw(MException('simulateHighthroughputExperiments:invalidFileFormat', 'Invalid input file format "%s"', ext));
                 end
             end
-        end
-        
+        end        
         
         %Get struct of averages of high-throughput in silico experiments
         function avgVals = loadAvgVals(avgVals, avgValsPath)
@@ -259,7 +258,7 @@ classdef DreamScoring
             
             paramVec = [
                 halfLives(rna.matureIndexs)
-                enzBounds(:, 1)
+                -enzBounds(:, 1)
                 enzBounds(:, 2)
                 tuBindProbs
                 ];
@@ -320,12 +319,9 @@ classdef DreamScoring
         
         %Calculate <((mean(ref) - mean(test))^2) / var(ref)>
         function dist = calcAvgNormSquaredDiff(test, ref)
-            test.mean(isinf(test.mean)) = sign(test.mean(isinf(test.mean))) * Inf;
-            ref.mean(isinf(ref.mean)) = sign(ref.mean(isinf(ref.mean))) * Inf;
-            test.std(isinf(test.std)) = sign(test.std(isinf(test.std))) * Inf;
-            ref.std(isinf(ref.std)) = sign(ref.std(isinf(ref.std))) * Inf;            
+            tfs = ref.std ~= 0;
             
-            dist = mean(((ref.mean - test.mean) .^ 2) ./ (ref.std .^ 2));
+            dist = mean(((ref.mean(tfs) - test.mean(tfs)) .^ 2) ./ (ref.std(tfs) .^ 2));
             
             dist = full(dist);
         end        
@@ -335,7 +331,7 @@ classdef DreamScoring
             [sortedTestAndDistrib, idx] = sortrows([
                 tests zeros(size(tests))
                 distrib ones(size(distrib))
-                ], [-1 -2]);
+                ], [1 2]);
             percentiles = zeros(size(sortedTestAndDistrib, 1), 1);
             percentiles(idx) = cumsum(sortedTestAndDistrib(:, 2)) / numel(distrib);
             
