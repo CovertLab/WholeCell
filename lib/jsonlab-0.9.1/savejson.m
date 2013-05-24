@@ -149,24 +149,26 @@ dim=size(item);
 len=numel(item); % let's handle 1D cell first
 padding1=repmat(sprintf('\t'),1,level-1);
 padding0=repmat(sprintf('\t'),1,level);
-if(len>1) 
+% if(len>1) 
     if(~isempty(name))
-        txt=sprintf('%s"%s": [\n',padding0, checkname(name,varargin{:})); name=''; 
+        txt=sprintf('%s"%s":[\n',padding0, checkname(name,varargin{:})); name=''; 
     else
         txt=sprintf('%s[\n',padding0); 
     end
-elseif(len==0)
-    if(~isempty(name))
-        txt=sprintf('%s"%s": null',padding0, checkname(name,varargin{:})); name=''; 
-    else
-        txt=sprintf('%snull',padding0); 
-    end
-end
+% elseif(len==0)
+%     if(~isempty(name))
+%         txt=sprintf('%s"%s":null',padding0, checkname(name,varargin{:})); name=''; 
+%     else
+%         txt=sprintf('%snull',padding0); 
+%     end
+% end
 for i=1:len
     txt=sprintf('%s%s%s',txt,padding1,obj2json(name,item{i},level+(len>1),varargin{:}));
     if(i<len) txt=sprintf('%s%s',txt,sprintf(',\n')); end
 end
-if(len>1) txt=sprintf('%s\n%s]',txt,padding0); end
+% if(len>1) 
+    txt=sprintf('%s\n%s]',txt,padding0); 
+% end
 
 %%-------------------------------------------------------------------------
 function txt=struct2json(name,item,level,varargin)
@@ -180,14 +182,14 @@ padding0=repmat(sprintf('\t'),1,level);
 sep=',';
 
 if(~isempty(name)) 
-    if(len>1) txt=sprintf('%s"%s": [\n',padding0,checkname(name,varargin{:})); end
+    if(len>1) txt=sprintf('%s"%s":[\n',padding0,checkname(name,varargin{:})); end
 else
     if(len>1) txt=sprintf('%s[\n',padding0); end
 end
 for e=1:len
   names = fieldnames(item(e));
   if(~isempty(name) && len==1)
-        txt=sprintf('%s%s"%s": {\n',txt,repmat(sprintf('\t'),1,level+(len>1)), checkname(name,varargin{:})); 
+        txt=sprintf('%s%s"%s":{\n',txt,repmat(sprintf('\t'),1,level+(len>1)), checkname(name,varargin{:})); 
   else
         txt=sprintf('%s%s{\n',txt,repmat(sprintf('\t'),1,level+(len>1))); 
   end
@@ -219,7 +221,7 @@ padding1=repmat(sprintf('\t'),1,level);
 padding0=repmat(sprintf('\t'),1,level+1);
 
 if(~isempty(name)) 
-    if(len>1) txt=sprintf('%s"%s": [\n',padding1,checkname(name,varargin{:})); end
+    if(len>1) txt=sprintf('%s"%s":[\n',padding1,checkname(name,varargin{:})); end
 else
     if(len>1) txt=sprintf('%s[\n',padding1); end
 end
@@ -235,7 +237,7 @@ for e=1:len
         val=regexprep(val,'^"','\\"');
     end
     if(len==1)
-        obj=['"' checkname(name,varargin{:}) '": ' '"',val,'"'];
+        obj=['"' checkname(name,varargin{:}) '":' '"',val,'"'];
 	if(isempty(name)) obj=['"',val,'"']; end
         txt=sprintf('%s%s%s%s',txt,repmat(sprintf('\t'),1,level),obj);
     else
@@ -258,10 +260,10 @@ padding0=repmat(sprintf('\t'),1,level+1);
 if(length(size(item))>2 || issparse(item) || ~isreal(item) || ...
    isempty(item) ||jsonopt('ArrayToStruct',0,varargin{:}))
     if(isempty(name))
-    	txt=sprintf('%s{\n%s"_ArrayType_": "%s",\n%s"_ArraySize_": %s,\n',...
+    	txt=sprintf('%s{\n%s"_ArrayType_":"%s",\n%s"_ArraySize_":%s,\n',...
               padding1,padding0,class(item),padding0,regexprep(mat2str(size(item)),'\s+',',') );
     else
-    	txt=sprintf('%s"%s": {\n%s"_ArrayType_": "%s",\n%s"_ArraySize_": %s,\n',...
+    	txt=sprintf('%s"%s":{\n%s"_ArrayType_":"%s",\n%s"_ArraySize_":%s,\n',...
               padding1,checkname(name,varargin{:}),padding0,class(item),padding0,regexprep(mat2str(size(item)),'\s+',',') );
     end
 else
@@ -270,9 +272,9 @@ else
     else
         if(numel(item)==1 && jsonopt('NoRowBracket',1,varargin{:})==1)
             numtxt=regexprep(regexprep(matdata2json(item,level+1,varargin{:}),'^\[',''),']','');
-           	txt=sprintf('%s"%s": %s',padding1,checkname(name,varargin{:}),numtxt);
+           	txt=sprintf('%s"%s":%s',padding1,checkname(name,varargin{:}),numtxt);
         else
-    	    txt=sprintf('%s"%s": %s',padding1,checkname(name,varargin{:}),matdata2json(item,level+1,varargin{:}));
+    	    txt=sprintf('%s"%s":%s',padding1,checkname(name,varargin{:}),matdata2json(item,level+1,varargin{:}));
         end
     end
     return;
@@ -289,29 +291,29 @@ if(issparse(item))
            % (Necessary for complex row vector handling below.)
            data=data';
        end
-       txt=sprintf(dataformat,txt,padding0,'"_ArrayIsComplex_": ','1', sprintf(',\n'));
+       txt=sprintf(dataformat,txt,padding0,'"_ArrayIsComplex_":','1', sprintf(',\n'));
     end
-    txt=sprintf(dataformat,txt,padding0,'"_ArrayIsSparse_": ','1', sprintf(',\n'));
+    txt=sprintf(dataformat,txt,padding0,'"_ArrayIsSparse_":','1', sprintf(',\n'));
     if(size(item,1)==1)
         % Row vector, store only column indices.
-        txt=sprintf(dataformat,txt,padding0,'"_ArrayData_": ',...
+        txt=sprintf(dataformat,txt,padding0,'"_ArrayData_":',...
            matdata2json([iy(:),data'],level+2,varargin{:}), sprintf('\n'));
     elseif(size(item,2)==1)
         % Column vector, store only row indices.
-        txt=sprintf(dataformat,txt,padding0,'"_ArrayData_": ',...
+        txt=sprintf(dataformat,txt,padding0,'"_ArrayData_":',...
            matdata2json([ix,data],level+2,varargin{:}), sprintf('\n'));
     else
         % General case, store row and column indices.
-        txt=sprintf(dataformat,txt,padding0,'"_ArrayData_": ',...
+        txt=sprintf(dataformat,txt,padding0,'"_ArrayData_":',...
            matdata2json([ix,iy,data],level+2,varargin{:}), sprintf('\n'));
     end
 else
     if(isreal(item))
-        txt=sprintf(dataformat,txt,padding0,'"_ArrayData_": ',...
+        txt=sprintf(dataformat,txt,padding0,'"_ArrayData_":',...
             matdata2json(item(:)',level+2,varargin{:}), sprintf('\n'));
     else
-        txt=sprintf(dataformat,txt,padding0,'"_ArrayIsComplex_": ','1', sprintf(',\n'));
-        txt=sprintf(dataformat,txt,padding0,'"_ArrayData_": ',...
+        txt=sprintf(dataformat,txt,padding0,'"_ArrayIsComplex_":','1', sprintf(',\n'));
+        txt=sprintf(dataformat,txt,padding0,'"_ArrayData_":',...
             matdata2json([real(item(:)) imag(item(:))],level+2,varargin{:}), sprintf('\n'));
     end
 end

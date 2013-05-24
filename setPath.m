@@ -31,6 +31,7 @@ setPathHelper('rude',         'lib/rude');                      %run-length enco
 setPathHelper('Funct_Bezier', 'lib/cubicBezier');               %cubic bezier                    http://www.mathworks.com/matlabcentral/fileexchange/6661
 setPathHelper('randsample',   'lib/randsample');                %randsample                      version from R2011b (earlier version has a bug)
 setPathHelper('cplexlp',      'lib/cplex-12.2')                 %clpex                           http://www-01.ibm.com/software/websphere/products/optimization/academic-initiative/
+setPathHelper('loadjson',     'lib/jsonlab-0.9.1')              %jsonlab                         http://www.mathworks.com/matlabcentral/fileexchange/33381-jsonlab-a-toolbox-to-encodedecode-json-files-in-matlaboctave
 setenv('ILOG_LICENSE_FILE', sprintf('%s%s%s%s%s%s%s%s', pwd, filesep, 'lib', filesep, 'cplex-12.2', filesep, 'access.ilm'));
 if isempty(which('mxlpsolve'))                                  %lp_solve                        http://sourceforge.net/projects/lpsolve/
     addpath(fullfile(pwd, 'lib/lp_solve_5.5.2.0'));
