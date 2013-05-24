@@ -101,6 +101,10 @@ dists = calcParametersAndPredictionErrors(...
 %- simulation id (timestamp?)
 
 function parameterVals = loadParameterVals(parameterVals, parameterValsPath)
+if ~isempty(parameterVals) && ~isempty(parameterValsPath)
+    throw(MException('loadParameterVals:error', 'Only 1 of parameterValsPath and parameterValsPath can be specified'))
+end
+
 if ~isempty(parameterVals)
 elseif ~isempty(parameterValsPath)
     [~, ~, ext] = fileparts(parameterValsPath);

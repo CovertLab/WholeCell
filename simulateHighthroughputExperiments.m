@@ -96,6 +96,10 @@ if ischar(geneticKnockouts)
     geneticKnockouts = {geneticKnockouts};
 end
 
+if ~isempty(parameterVals) && ~isempty(parameterValsPath)
+    throw(MException('simulateHighthroughputExperiments:error', 'Only 1 of parameterValsPath and parameterValsPath can be specified'))
+end
+
 if numel(fields(initialConditions)) == 0 && ~isempty(initialConditionsPath)
     initialConditions = load(initialConditionsPath);
 end
