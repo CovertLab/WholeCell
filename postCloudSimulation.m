@@ -72,7 +72,7 @@ end
 %copy to S3 and grant permissions
 [status, errMsg] = s3cmd.put(parameterValsPath, remoteParameterValsPath);
 if status ~= 0
-    throw(Exception('postCloudSimulation:error', 'Unable to upload file: %s', errMsg));
+    throw(MException('postCloudSimulation:error', 'Unable to upload file: %s', errMsg));
 end
 s3cmd.grantAclRead(bucketUrl, BitMill.s3Account);
 s3cmd.grantAclReadAcp(bucketUrl, BitMill.s3Account);

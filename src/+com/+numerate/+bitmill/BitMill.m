@@ -35,13 +35,12 @@ classdef BitMill
             import com.numerate.bitmill.s3cmd;
             
             %% parse inputs
-            ip = inputParser;
+            ip = inputParser();
             
             ip.addParamValue('type', [], @(x) ischar(x));            
             ip.addParamValue('parameters', [], @(x) isstruct(x) && isequal(sort(fieldnames(x)), {'name'; 'value'}));
             ip.addParamValue('inputs', [], @(x) isstruct(x) && isequal(sort(fieldnames(x)), {'name'; 'url'}));
             ip.addParamValue('outputs', [], @(x) isstruct(x) && isequal(sort(fieldnames(x)), {'name'; 'url'}));
-            ip.addParamValue('bucketUrl', [], @(x) ischar(x));
             
             ip.parse(varargin{:});
             
@@ -49,7 +48,6 @@ classdef BitMill
             parameters = ip.Results.parameters;
             inputs = ip.Results.inputs;
             outputs = ip.Results.outputs;
-            bucketUrl = ip.Results.bucketUrl;
             
             validateattributes(type, {'char'}, {'nonempty'});
             
@@ -80,6 +78,7 @@ classdef BitMill
                 savejson('', job, 'ForceRootName', false, 'ArrayIndent', false), ...
                 sprintf('\n'), ''), sprintf('\t'), ''));
             [result, status, errMsg] = BitMill.execCmd(cmd);
+            jobId = [];
             if status == 0
                 tmp = regexp(result, ' id: (?<jobId>.{36,36}) at ', 'names');
                 if ~isempty(tmp)
