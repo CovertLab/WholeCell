@@ -10,6 +10,16 @@
 % - status [double]: 0==>success, otherwise==>failure
 % - errMsg [char]: error message from BitMill
 %
+% Examples
+%   >> getCloudSimulationStatus()
+%      ans = 34x1 struct array with fields:
+%   >> getCloudSimulationStatus('82ddfe87-6263-4b40-a981-99bd17b8a68c')
+%            id: '82ddfe87-6263-4b40-a981-99bd17b8a68c'
+%          pool: 'ZscfWK4Bw8EAPJRC'
+%     submitted: '2013-05-25T15:52:52.743-0700'
+%        status: 'cancelled'
+%       details: [1x1 struct]
+%
 % Author: Jonathan Karr, jkarr@stanford.edu
 % Affilitation: Covert Lab, Department of Bioengineering, Stanford University
 % Last updated: 5/12/2013

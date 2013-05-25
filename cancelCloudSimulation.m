@@ -9,6 +9,11 @@
 % - status [double]: 0==>success, otherwise==>failure
 % - errMsg [char]: error message from BitMill
 %
+% Example:
+%   >> cancelCloudSimulation('82ddfe87-6263-4b40-a981-99bd17b8a68c');
+%      ans = 
+%      cancelled
+%
 % Author: Jonathan Karr, jkarr@stanford.edu
 % Affilitation: Covert Lab, Department of Bioengineering, Stanford University
 % Last updated: 5/12/2013

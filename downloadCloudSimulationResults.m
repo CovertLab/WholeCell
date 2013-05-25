@@ -15,6 +15,13 @@
 % - status
 % - errMsg
 %
+% Example
+%   >> downloadCloudSimulationResults(...
+%         'simName', 'test6', ...
+%         'bucketUrl', 's3://test-dream', ...
+%         'localFolder', 'output/bitmill-test' ...
+%         );
+%
 % Author: Jonathan Karr, jkarr@stanford.edu
 % Affilitation: Covert Lab, Department of Bioengineering, Stanford University
 % Last updated: 5/12/2013

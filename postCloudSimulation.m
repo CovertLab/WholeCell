@@ -23,6 +23,12 @@
 % - status [double]: 0==>success, otherwise==>failure
 % - errMsg [char]: error message from BitMill
 %
+% Example:
+%   >> [jobId, status, errMsg] = postCloudSimulation('simName', 'test20', 'bucketUrl', 's3://test-dream')
+%      jobId = 82ddfe87-6263-4b40-a981-99bd17b8a68c
+%      status = 0
+%      errMsg = []
+%
 % Author: Jonathan Karr, jkarr@stanford.edu
 % Affilitation: Covert Lab, Department of Bioengineering, Stanford University
 % Last updated: 5/12/2013
@@ -74,9 +80,9 @@ end
 if status ~= 0
     throw(MException('postCloudSimulation:error', 'Unable to upload file: %s', errMsg));
 end
-s3cmd.grantAclRead(bucketUrl, BitMill.s3Account);
-s3cmd.grantAclReadAcp(bucketUrl, BitMill.s3Account);
-s3cmd.grantAclWrite(bucketUrl, BitMill.s3Account);
+%s3cmd.grantAclRead(bucketUrl, BitMill.s3Account);
+%s3cmd.grantAclReadAcp(bucketUrl, BitMill.s3Account);
+%s3cmd.grantAclWrite(bucketUrl, BitMill.s3Account);
 s3cmd.grantAclRead(remoteParameterValsPath, BitMill.s3Account);
 
 %cleanup temporary file
