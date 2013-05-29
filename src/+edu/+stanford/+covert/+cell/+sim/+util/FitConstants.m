@@ -1556,7 +1556,7 @@ classdef FitConstants < handle
                 t.transcriptionUnitBindingProbabilities ...
                 ./ tfFoldChange(:, 1) ...
                 ./ scProbFoldChange(:, 1) ...
-                ./ this.calcEffectiveMeanTranscriptionUnitCopyNumbers();
+                ./ this.calcEffectiveMeanTranscriptionUnitCopyNumbers(this.simulation);
             
             %normalize RNA polymerase binding probability
             t.transcriptionUnitBindingProbabilities = ...
@@ -1606,21 +1606,6 @@ classdef FitConstants < handle
                 pmod.reactionModificationMatrix' * max(0, -pmod.reactionStoichiometryMatrix(tfs, :))';
         end
         
-        function value = calcEffectiveMeanTranscriptionUnitCopyNumbers(this)
-            sim = this.simulation;
-            c = sim.state('Chromosome');
-            time = sim.state('Time');
-            
-            value = (...
-                + 1 * time.replicationInitiationDuration ...
-                + (1 + abs(c.transcriptionUnitStartCoordinates + c.transcriptionUnitLengths - 1 - c.sequenceLen/2) / (c.sequenceLen/2)) * time.replicationDuration ...
-                + 2 * time.cytokinesisDuration ...
-                ) / time.cellCycleLength;
-            
-            iTU = sim.process('Transcription').transcriptionUnitIndexs_DnaAR12345Boxes;
-            value(iTU) = 1/3 * (value(iTU) - time.replicationInitiationDuration / time.cellCycleLength); %1/3 fit based on simulations of multiple generations
-        end
-        
         function tuConstraints = formulateTranscriptionUnitConstraints(this)
             rnaGeneComp = this.simulation.state('Rna').nascentRNAGeneComposition;
             tuConstraints  = zeros(this.nGenes - this.nRNAs, this.nGenes);
@@ -1664,6 +1649,22 @@ classdef FitConstants < handle
                 diag(rnaMWs(r.matureRibosomalRRNAIndexs))  * indicatorRibosomalRRNA;
                 rnaMWs(r.matureSRNAIndexs)'                * indicatorSRNA
                 rnaMWs(r.matureTRNAIndexs)'                * indicatorTRNA];
+        end
+    end
+    
+    methods (Static = true)
+        function value = calcEffectiveMeanTranscriptionUnitCopyNumbers(sim)
+            c = sim.state('Chromosome');
+            time = sim.state('Time');
+            
+            value = (...
+                + 1 * time.replicationInitiationDuration ...
+                + (1 + abs(c.transcriptionUnitStartCoordinates + c.transcriptionUnitLengths - 1 - c.sequenceLen/2) / (c.sequenceLen/2)) * time.replicationDuration ...
+                + 2 * time.cytokinesisDuration ...
+                ) / time.cellCycleLength;
+            
+            iTU = sim.process('Transcription').transcriptionUnitIndexs_DnaAR12345Boxes;
+            value(iTU) = 1/3 * (value(iTU) - time.replicationInitiationDuration / time.cellCycleLength); %1/3 fit based on simulations of multiple generations
         end
     end
 end
