@@ -4,11 +4,14 @@
 % Author: Jared Jacobs, jmjacobs@stanford.edu
 % Affilitation: Covert Lab, Department of Bioengineering, Stanford University
 % Last updated: 5/31/2011
-function generateTestFixtures(useCachedKb)
+function generateTestFixtures(useCachedKb, verify)
 import edu.stanford.covert.cell.sim.runners.SimulationRunner;
 
 if nargin < 1
 	useCachedKb = true;
+end
+if nargin < 2
+    verify = false;
 end
 
 %create runner which helps do the tasks below
@@ -20,9 +23,10 @@ runner = SimulationRunner(...
 
 %construction KB and simulation
 sim = runner.constructKbAndSimulation();
+sim.state('MetabolicReaction').initialGrowthFilterWidth = 0.95;
 
 % verify initial growth rate distribution
-if ~runner.isSimulationFitted(sim)
+if verify && ~runner.isSimulationFitted(sim)
     throw(MException('Simulation:notFitted', 'Simulation not properly fitted'));
 end
 
