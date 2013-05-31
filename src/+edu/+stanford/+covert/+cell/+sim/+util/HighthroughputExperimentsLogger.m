@@ -615,9 +615,8 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             nTimeMax = 0;
             isFilesSim = false(size(files));
             for i = 1:numel(files)
-                tmpPath = fullfile(inPathBase, files(i).name);
-                matObj = matfile(tmpPath);
-                vars = whos(matObj);
+                tmpPath = fullfile(inPathBase, files(i).name);                
+                vars = whos('-file', tmpPath);
                 if ~isequal({vars.name}', {
                         'cellCycleLen'; 'chipSeq'; 'dnaSeq'; 'growth';
                         'labels'; 'mass'; 'metConcs'; 'protArray';
@@ -626,12 +625,13 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
                         })
                     continue;
                 end
-                if size(matObj.growth, 1) > 1
+                tmp = load(tmpPath, 'growth', 'time');
+                if size(tmp.growth, 1) > 1
                     continue;
                 end
                 
                 isFilesSim(i) = true;
-                nTimeMax = max(nTimeMax, numel(matObj.time));
+                nTimeMax = max(nTimeMax, numel(tmp.time));
             end
             files = files(isFilesSim);
             if verbosity >= 1
