@@ -57,5 +57,13 @@ fprintf(fid, 'config.password = ''%s'';\n', strrep(password, '''', ''''''));
 fprintf(fid, 'config.outputPath = ''%s'';\n', strrep(outputPath, '''', ''''''));
 fclose(fid);
 
+%% create output folders
+folders = {'bin', 'doc', 'output', 'tmp'};
+for i = 1:numel(folders)
+    if ~exists(folders{i}, 'dir')
+        mkdir(folders{i});
+    end
+end
+
 %% rebuild fixtures for current MATLAB version
 generateTestFixtures(false);

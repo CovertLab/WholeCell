@@ -11,6 +11,12 @@ classdef DreamCompetitionTest < TestCase
         function this = DreamCompetitionTest(name)
             this = this@TestCase(name);
         end
+        
+        function setUp(~)
+            if ~exist('output', 'dir')
+                mkdir('output');
+            end
+        end
     end
     
     %test getting, setting parameters
