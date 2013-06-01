@@ -21,6 +21,7 @@
 %   values
 % - refAvgValsPath: same as avgValsPath:, but for reference parameter
 %   values
+% - distsPath: path to save calculated parameter and prediction distances
 % - verbosity [integer]: Desired verbosity level. Zero supresses output.
 %   Higher value prints more output.
 %
@@ -95,10 +96,6 @@ dists = calcParametersAndPredictionErrors(...
     'refAvgVals', refAvgVals, ...
     'distsPath', distsPath ...
     );
-
-%% send data to Synapse (TODO)
-%- requires user id
-%- simulation id (timestamp?)
 
 function parameterVals = loadParameterVals(parameterVals, parameterValsPath)
 if ~isempty(parameterVals) && ~isempty(parameterValsPath)
