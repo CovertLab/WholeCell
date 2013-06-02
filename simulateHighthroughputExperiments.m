@@ -5,6 +5,7 @@
 %
 % Inputs (apply using key, value pairs)
 % - seed [integer]: random number generator seed
+% - lengthSec [integer]: simulation length in s
 % - parameterVals [struct]: struct containing desired values of simulation
 %   parameters. Initialize using the getAllParameters method of the
 %   simulation class to get default parameter values. Overwrite struct
@@ -68,6 +69,7 @@ import edu.stanford.covert.util.StructUtil;
 ip = inputParser();
 
 ip.addParamValue('seed', []);
+ip.addParamValue('lengthSec', []);
 ip.addParamValue('geneticKnockouts', [], @(x) ischar(x) || iscell(x));
 ip.addParamValue('parameterVals', [], @(x) isstruct(x));
 ip.addParamValue('parameterValsPath', '', @(x) exist(x, 'file'));
@@ -79,6 +81,7 @@ ip.addParamValue('verbosity', 1);
 ip.parse(varargin{:});
 
 seed                  = ip.Results.seed;
+lengthSec             = ip.Results.lengthSec;
 geneticKnockouts      = ip.Results.geneticKnockouts;
 parameterVals         = ip.Results.parameterVals;
 parameterValsPath     = ip.Results.parameterValsPath;
@@ -88,9 +91,14 @@ simPath               = ip.Results.simPath;
 verbosity             = ip.Results.verbosity;
 
 if ischar(seed)
-    seed = str2double(seed);
-    validateattributes(seed, {'numeric'}, {'integer'});
+    seed = str2double(seed);    
 end
+validateattributes(seed, {'numeric'}, {'integer'});
+
+if ischar(lengthSec)
+    lengthSec = str2double(lengthSec);    
+end
+validateattributes(lengthSec, {'numeric'}, {'integer'});
 
 if ischar(geneticKnockouts)
     geneticKnockouts = {geneticKnockouts};
@@ -146,6 +154,11 @@ end
 %seed random number generator
 if ~isempty(seed)
     sim.applyOptions('seed', seed);
+end
+
+%set simulation length
+if ~isempty(lengthSec)
+    sim.applyOptions('lengthSec', lengthSec);
 end
 
 %% setup loggers

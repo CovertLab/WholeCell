@@ -6,12 +6,13 @@
 # 1) Simulation name
 # 2) Path to .mat file containing parameter values
 # 3) Number of cells to simulate
+# 4) Simulation length in s
 #
 #Usage:
 # 1) cd /path/to/WholeCell/
 # 2) ./build.sh simulateHighthroughputExperiments
 # 3) ./build.sh averageHighthroughputExperiments
-# 4) ./runSimHtExpts.pl simName parameterValsPath.{mat|xml} nSim
+# 4) ./runSimHtExpts.pl simName parameterValsPath.{mat|xml} nSim lengthSec
 #
 #Author: Jonathan Karr, jkarr@stanford.edu
 #Affiliation: Covert Lab, Department of Bioengineering, Stanford University
@@ -41,6 +42,7 @@ my $lang = Date::Language->new('English');
 my $simName = $ARGV[0];
 my $parametersFile = $ARGV[1];
 my $nSim = $ARGV[2];
+my $lengthSec = $ARGV[3];
 
 my $jobFileName = '';
 
@@ -69,6 +71,7 @@ $template->param(outDir => $outDir);
 $template->param(storageServer => $storageServer);
 $template->param(pathToRunTime => $pathToRunTime);
 $template->param(nodeTmpDir => $nodeTmpDir);
+$template->param(lengthSec => $lengthSec);
 
 my $submitJobs = '';
 for (my $n = 1; $n <= $nSim; $n++){

@@ -39,6 +39,7 @@ mv parameters.mat output/<TMPL_VAR NAME=simName>
 #job
 ./run_simulateHighthroughputExperiments.sh <TMPL_VAR NAME=pathToRunTime> \
   seed <TMPL_VAR NAME=n> \
+  lengthSec <TMPL_VAR NAME=lengthSec> \
   parameterValsPath output/<TMPL_VAR NAME=simName>/parameters.mat \
   simPath output/<TMPL_VAR NAME=simName>/predictions-<TMPL_VAR NAME=n>.mat
   
