@@ -229,7 +229,7 @@ classdef DreamScoring
                         throw(MException('simulateHighthroughputExperiments:invalidFileFormat', 'Invalid input file format "%s"', ext));
                 end
             end
-        end        
+        end
         
         %Get struct of averages of high-throughput in silico experiments
         function avgVals = loadAvgVals(avgVals, avgValsPath)
@@ -276,13 +276,13 @@ classdef DreamScoring
             
             predVec = struct('mean', [], 'std', []);
             predVec.mean = [
-                mean(nanmean(predStruct.growth, 2), 1)
-                mean(nanmean(predStruct.mass, 2), 1)
-                mean(nanmean(predStruct.volume, 2), 1)
+                mean(nanmean(predStruct.singleCell.growth, 2), 1)
+                mean(nanmean(predStruct.singleCell.mass, 2), 1)
+                mean(nanmean(predStruct.singleCell.volume, 2), 1)
                 
-                mean(min(cellCycleLength, predStruct.repInitTime))
-                mean(min(cellCycleLength, predStruct.repTermTime))
-                mean(min(cellCycleLength, predStruct.cellCycleLen))
+                mean(min(cellCycleLength, predStruct.singleCell.repInitTime))
+                mean(min(cellCycleLength, predStruct.singleCell.repTermTime))
+                mean(min(cellCycleLength, predStruct.singleCell.cellCycleLen))
                 
                 predStruct.metConcs.mean
                 predStruct.dnaSeq.mean
@@ -293,13 +293,13 @@ classdef DreamScoring
                 predStruct.rxnFluxes.mean
                 ];
             predVec.std = [
-                sqrt(mean(nanvar(predStruct.growth, 1, 2)))
-                sqrt(mean(nanvar(predStruct.mass, 1, 2)))
-                sqrt(mean(nanvar(predStruct.volume, 1, 2)))
+                sqrt(mean(nanvar(predStruct.singleCell.growth, 1, 2)))
+                sqrt(mean(nanvar(predStruct.singleCell.mass, 1, 2)))
+                sqrt(mean(nanvar(predStruct.singleCell.volume, 1, 2)))
                 
-                std(min(cellCycleLength, predStruct.repInitTime))
-                std(min(cellCycleLength, predStruct.repTermTime))
-                std(min(cellCycleLength, predStruct.cellCycleLen))
+                std(min(cellCycleLength, predStruct.singleCell.repInitTime))
+                std(min(cellCycleLength, predStruct.singleCell.repTermTime))
+                std(min(cellCycleLength, predStruct.singleCell.cellCycleLen))
                 
                 predStruct.metConcs.std
                 predStruct.dnaSeq.std
@@ -328,7 +328,7 @@ classdef DreamScoring
             dist = mean(((ref.mean(tfs) - test.mean(tfs)) .^ 2) ./ (ref.std(tfs) .^ 2));
             
             dist = full(dist);
-        end        
+        end
         
         %calculate p-value
         function p = calcPVal(tests, distrib)

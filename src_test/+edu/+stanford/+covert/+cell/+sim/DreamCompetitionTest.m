@@ -62,7 +62,7 @@ classdef DreamCompetitionTest < TestCase
             %set kinetics
             rxnId = met.reactionWholeCellModelIDs{1};
             kinetics.(rxnId).for = 1;
-            sim.setMetabolicReactionKinetics(kinetics);
+            sim.applyMetabolicReactionKinetics(kinetics);
             assertEqual(kinetics.(rxnId).for, sim.getMetabolicReactionKinetics().(rxnId).for);
             assertEqual(met.enzymeBounds(met.reactionIndexs_fba, :), ...
                 met.fbaEnzymeBounds(met.fbaReactionIndexs_metabolicConversion, :));
@@ -86,7 +86,7 @@ classdef DreamCompetitionTest < TestCase
                 );
             
             experimentalData = load('output/dream-sim-1.mat');
-            assertEqual(0:10, experimentalData.time);
+            assertEqual(0:10, experimentalData.singleCell.time);
         end
         
         %Run simulation using .mat file of parameter values
@@ -106,7 +106,7 @@ classdef DreamCompetitionTest < TestCase
                 );
             
             experimentalData = load('output/dream-sim-2.mat');
-            assertEqual(0:5, experimentalData.time);
+            assertEqual(0:5, experimentalData.singleCell.time);
         end
         
         %Run simulation using XML file of parameter values
@@ -201,7 +201,7 @@ classdef DreamCompetitionTest < TestCase
                 );
             
             experimentalData = load('output/dream-sim-3.mat');
-            assertEqual(0:5, experimentalData.time);
+            assertEqual(0:5, experimentalData.singleCell.time);
         end
         
         %test knocking out
@@ -220,7 +220,7 @@ classdef DreamCompetitionTest < TestCase
                 );
             
             experimentalData = load('output/dream-sim-4.mat');
-            assertEqual(0:5, experimentalData.time);
+            assertEqual(0:5, experimentalData.singleCell.time);
         end
         
         %test setting initial conditions
@@ -241,7 +241,7 @@ classdef DreamCompetitionTest < TestCase
                 );
             
             experimentalData = load('output/dream-sim-5.mat');
-            assertEqual(0:5, experimentalData.time);
+            assertEqual(0:5, experimentalData.singleCell.time);
         end
         
         %test setting initial conditions
@@ -265,7 +265,7 @@ classdef DreamCompetitionTest < TestCase
                 );
             
             experimentalData = load('output/dream-sim-6.mat');
-            assertEqual(0:10, experimentalData.time);
+            assertEqual(0:10, experimentalData.singleCell.time);
         end
         
         function test_averageHighthroughputExperiments(~)
@@ -309,17 +309,17 @@ classdef DreamCompetitionTest < TestCase
                 % validate sim
                 simVals = load(sprintf('output/dream-sim-batch-%d.mat', i));
                 
-                assertEqual(0:i*10, simVals.time);
-                assertEqual([1 i*10+1], size(simVals.growth))
-                assertEqual([1 i*10+1], size(simVals.mass))
-                assertEqual([1 i*10+1], size(simVals.volume))
-                assertTrue(all(isreal(simVals.growth) & isfinite(simVals.growth)))
-                assertElementsAlmostEqual(mass.cellInitialDryWeight / (1 - mass.fractionWetWeight) * ones(1, i*10+1), simVals.mass);
-                assertTrue(all(isreal(simVals.volume) & isfinite(simVals.volume)))
+                assertEqual(0:i*10, simVals.singleCell.time);
+                assertEqual([1 i*10+1], size(simVals.singleCell.growth))
+                assertEqual([1 i*10+1], size(simVals.singleCell.mass))
+                assertEqual([1 i*10+1], size(simVals.singleCell.volume))
+                assertTrue(all(isreal(simVals.singleCell.growth) & isfinite(simVals.singleCell.growth)))
+                assertElementsAlmostEqual(mass.cellInitialDryWeight / (1 - mass.fractionWetWeight) * ones(1, i*10+1), simVals.singleCell.mass);
+                assertTrue(all(isreal(simVals.singleCell.volume) & isfinite(simVals.singleCell.volume)))
                 
-                assertTrue(isscalar(simVals.repInitTime))
-                assertTrue(isscalar(simVals.repTermTime))
-                assertTrue(isscalar(simVals.cellCycleLen))
+                assertTrue(isscalar(simVals.singleCell.repInitTime))
+                assertTrue(isscalar(simVals.singleCell.repTermTime))
+                assertTrue(isscalar(simVals.singleCell.cellCycleLen))
                 
                 assertTrue(all(isreal(simVals.metConcs.mean) & isfinite(simVals.metConcs.mean) & simVals.metConcs.mean >= 0))
                 assertTrue(all(isreal(simVals.metConcs.std) & isfinite(simVals.metConcs.std) & simVals.metConcs.std >= 0))
@@ -349,17 +349,17 @@ classdef DreamCompetitionTest < TestCase
             refParameterVals = parameterVals;
             refAvgVals = averageHighthroughputExperiments('simPathPattern', 'output/dream-sim-batch-*.mat');
             
-            assertEqual([nSimulations 21], size(refAvgVals.growth))
-            assertEqual([nSimulations 21], size(refAvgVals.mass))
-            assertEqual([nSimulations 21], size(refAvgVals.volume))
-            assertEqual([nSimulations 1], size(refAvgVals.repInitTime))
-            assertEqual([nSimulations 1], size(refAvgVals.repTermTime))
-            assertEqual([nSimulations 1], size(refAvgVals.cellCycleLen))
-            assertAllEqual(false, isnan(refAvgVals.growth(nSimulations, :)))
-            assertAllEqual(false, isnan(refAvgVals.mass(nSimulations, :)))
-            assertAllEqual(false, isnan(refAvgVals.volume(nSimulations, :)))
-            assertAllEqual(NaN, refAvgVals.repTermTime)
-            assertAllEqual(NaN, refAvgVals.cellCycleLen)
+            assertEqual([nSimulations 21], size(refAvgVals.singleCell.growth))
+            assertEqual([nSimulations 21], size(refAvgVals.singleCell.mass))
+            assertEqual([nSimulations 21], size(refAvgVals.singleCell.volume))
+            assertEqual([nSimulations 1], size(refAvgVals.singleCell.repInitTime))
+            assertEqual([nSimulations 1], size(refAvgVals.singleCell.repTermTime))
+            assertEqual([nSimulations 1], size(refAvgVals.singleCell.cellCycleLen))
+            assertAllEqual(false, isnan(refAvgVals.singleCell.growth(nSimulations, :)))
+            assertAllEqual(false, isnan(refAvgVals.singleCell.mass(nSimulations, :)))
+            assertAllEqual(false, isnan(refAvgVals.singleCell.volume(nSimulations, :)))
+            assertAllEqual(NaN, refAvgVals.singleCell.repTermTime)
+            assertAllEqual(NaN, refAvgVals.singleCell.cellCycleLen)
             
             propNames = {'metConcs'; 'dnaSeq'; 'rnaSeq'; 'chipSeq'; 'rnaArray'; 'protArray'; 'rxnFluxes'};
             for i = 1:numel(propNames)

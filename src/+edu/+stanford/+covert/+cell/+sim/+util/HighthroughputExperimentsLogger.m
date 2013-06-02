@@ -579,13 +579,15 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             
             %% save
             data = struct(...
-                'time',         this.time, ...
-                'growth',       this.growth, ...
-                'mass',         this.mass, ...
-                'volume',       this.volume, ...
-                'repInitTime',  this.repInitTime, ...
-                'repTermTime',  this.repTermTime, ...
-                'cellCycleLen', this.cellCycleLen, ...
+                'singleCell', struct(...
+                    'time',         this.time, ...
+                    'growth',       this.growth, ...
+                    'mass',         this.mass, ...
+                    'volume',       this.volume, ...
+                    'repInitTime',  this.repInitTime, ...
+                    'repTermTime',  this.repTermTime, ...
+                    'cellCycleLen', this.cellCycleLen ...
+                    ), ...
                 'metConcs',     this.metConcs, ...
                 'dnaSeq',       this.dnaSeq, ...
                 'rnaSeq',       this.rnaSeq, ...
@@ -618,20 +620,18 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
                 tmpPath = fullfile(inPathBase, files(i).name);                
                 vars = whos('-file', tmpPath);
                 if ~isequal({vars.name}', {
-                        'cellCycleLen'; 'chipSeq'; 'dnaSeq'; 'growth';
-                        'labels'; 'mass'; 'metConcs'; 'protArray';
-                        'repInitTime'; 'repTermTime'
-                        'rnaArray'; 'rnaSeq'; 'rxnFluxes'; 'time'; 'volume'
+                        'chipSeq'; 'dnaSeq'; 'labels'; 'metConcs'; 'protArray';
+                        'rnaArray'; 'rnaSeq'; 'rxnFluxes'; 'singleCell'
                         })
                     continue;
                 end
-                tmp = load(tmpPath, 'growth', 'time');
-                if size(tmp.growth, 1) > 1
+                tmp = load(tmpPath, 'singleCell');
+                if size(tmp.singleCell.growth, 1) > 1
                     continue;
                 end
                 
                 isFilesSim(i) = true;
-                nTimeMax = max(nTimeMax, numel(tmp.time));
+                nTimeMax = max(nTimeMax, numel(tmp.singleCell.time));
             end
             files = files(isFilesSim);
             if verbosity >= 1
@@ -658,13 +658,13 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             
             avgVals = struct();
             
-            avgVals.growth = NaN(nSim, nTimeMax);
-            avgVals.mass   = NaN(nSim, nTimeMax);
-            avgVals.volume = NaN(nSim, nTimeMax);
-            
-            avgVals.repInitTime  = NaN(nSim, 1);
-            avgVals.repTermTime  = NaN(nSim, 1);
-            avgVals.cellCycleLen = NaN(nSim, 1);
+            avgVals.singleCell = struct();
+            avgVals.singleCell.growth = NaN(nSim, nTimeMax);
+            avgVals.singleCell.mass   = NaN(nSim, nTimeMax);
+            avgVals.singleCell.volume = NaN(nSim, nTimeMax);            
+            avgVals.singleCell.repInitTime  = NaN(nSim, 1);
+            avgVals.singleCell.repTermTime  = NaN(nSim, 1);
+            avgVals.singleCell.cellCycleLen = NaN(nSim, 1);
             
             avgVals.metConcs  = struct('mean', [], 'std', [], 'var', []);
             avgVals.dnaSeq    = struct('mean', [], 'std', [], 'var', []);
@@ -701,15 +701,15 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             %average
             for i = 1:nSim
                 vals = load(fullfile(inPathBase, files(i).name));
-                nTime = numel(vals.time);
+                nTime = numel(vals.singleCell.time);
                 
-                avgVals.growth(i, 1:nTime) = vals.growth;
-                avgVals.mass(  i, 1:nTime) = vals.mass;
-                avgVals.volume(i, 1:nTime) = vals.volume;
+                avgVals.singleCell.growth(i, 1:nTime) = vals.singleCell.growth;
+                avgVals.singleCell.mass(  i, 1:nTime) = vals.singleCell.mass;
+                avgVals.singleCell.volume(i, 1:nTime) = vals.singleCell.volume;
                 
-                avgVals.repInitTime( i, 1) = vals.repInitTime;
-                avgVals.repTermTime( i, 1) = vals.repTermTime;
-                avgVals.cellCycleLen(i, 1) = vals.cellCycleLen;
+                avgVals.singleCell.repInitTime( i, 1) = vals.singleCell.repInitTime;
+                avgVals.singleCell.repTermTime( i, 1) = vals.singleCell.repTermTime;
+                avgVals.singleCell.cellCycleLen(i, 1) = vals.singleCell.cellCycleLen;
                 
                 avgVals.metConcs.mean  = avgVals.metConcs.mean  + 1 / nSim * vals.metConcs.mean;
                 avgVals.dnaSeq.mean    = avgVals.dnaSeq.mean    + 1 / nSim * vals.dnaSeq.mean;
