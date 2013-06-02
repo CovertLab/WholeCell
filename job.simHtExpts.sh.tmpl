@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #job
-#PBS -N HtExpt-<TMPL_VAR NAME=timeStamp>-<TMPL_VAR NAME=n>
+#PBS -N HtExpt-<TMPL_VAR NAME=simName>-<TMPL_VAR NAME=n>
 
 #user
 #PBS -P <TMPL_VAR NAME=linuxRunUser>:<TMPL_VAR NAME=linuxRunUser>
@@ -17,14 +17,14 @@
 #PBS -l vmem=3gb
 
 #log
-#PBS -o <TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=timeStamp>/simLog-<TMPL_VAR NAME=n>.out
-#PBS -e <TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=timeStamp>/simLog-<TMPL_VAR NAME=n>.err
+#PBS -o <TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=simName>/simLog-<TMPL_VAR NAME=n>.out
+#PBS -e <TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=simName>/simLog-<TMPL_VAR NAME=n>.err
 #PBS -W umask=002
 
 #staging
 #PBS -v TMPDIR=<TMPL_VAR NAME=nodeTmpDir>
-#PBS -W stagein=<TMPL_VAR NAME=nodeTmpDir>/$PBS_JOBID/@<TMPL_VAR NAME=storageServer>:<TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=timeStamp>/bin/simulateHighthroughputExperiments/
-#PBS -W stagein=<TMPL_VAR NAME=nodeTmpDir>/$PBS_JOBID/parameters.mat@<TMPL_VAR NAME=storageServer>:<TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=timeStamp>/parameters.mat
+#PBS -W stagein=<TMPL_VAR NAME=nodeTmpDir>/$PBS_JOBID/@<TMPL_VAR NAME=storageServer>:<TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=simName>/bin/simulateHighthroughputExperiments/
+#PBS -W stagein=<TMPL_VAR NAME=nodeTmpDir>/$PBS_JOBID/parameters.mat@<TMPL_VAR NAME=storageServer>:<TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=simName>/parameters.mat
 
 #set environment
 export MATLAB_PREFDIR=/tmp/emptydir
@@ -33,20 +33,20 @@ mkdir -p $MCR_CACHE_ROOT
 
 #setup
 cd <TMPL_VAR NAME=nodeTmpDir>/$PBS_JOBID
-mkdir -p output/<TMPL_VAR NAME=timeStamp>
-mv parameters.mat output/<TMPL_VAR NAME=timeStamp>
+mkdir -p output/<TMPL_VAR NAME=simName>
+mv parameters.mat output/<TMPL_VAR NAME=simName>
 
 #job
 ./run_simulateHighthroughputExperiments.sh <TMPL_VAR NAME=pathToRunTime> \
   seed <TMPL_VAR NAME=n> \
-  parameterValsPath output/<TMPL_VAR NAME=timeStamp>/parameters.mat \
-  simPath output/<TMPL_VAR NAME=timeStamp>/predictions-<TMPL_VAR NAME=n>.mat
+  parameterValsPath output/<TMPL_VAR NAME=simName>/parameters.mat \
+  simPath output/<TMPL_VAR NAME=simName>/predictions-<TMPL_VAR NAME=n>.mat
   
 #copy data
-cp output/<TMPL_VAR NAME=timeStamp>/predictions-<TMPL_VAR NAME=n>.mat <TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=timeStamp>
+cp output/<TMPL_VAR NAME=simName>/predictions-<TMPL_VAR NAME=n>.mat <TMPL_VAR NAME=outDir>/<TMPL_VAR NAME=simName>
 
 #cleanup
-rm -rf output/<TMPL_VAR NAME=timeStamp>/
+rm -rf output/<TMPL_VAR NAME=simName>/
 rm -rf $MCR_CACHE_ROOT/*
 
 #resources

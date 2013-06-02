@@ -3,14 +3,15 @@
 #subdirectory of /path/to/WholeCell/output/.
 #
 #Inptus:
-# 1) Path to .mat file containing parameter values
-# 2) Number of cells to simulate
+# 1) Simulation name
+# 2) Path to .mat file containing parameter values
+# 3) Number of cells to simulate
 #
 #Usage:
 # 1) cd /path/to/WholeCell/
 # 2) ./build.sh simulateHighthroughputExperiments
 # 3) ./build.sh averageHighthroughputExperiments
-# 4) ./runSimHtExpts.pl parameterValsPath.{mat|xml} nSim
+# 4) ./runSimHtExpts.pl simName parameterValsPath.{mat|xml} nSim
 #
 #Author: Jonathan Karr, jkarr@stanford.edu
 #Affiliation: Covert Lab, Department of Bioengineering, Stanford University
@@ -36,32 +37,32 @@ my $baseDir = $config{'simulationPath'};
 
 my $outDir = "$baseDir/output/simHtExpts";
 my $lang = Date::Language->new('English');
-my $timeStamp = $lang->time2str("%Y_%m_%d_%H_%M_%S", time);
 
-my $parametersFile = $ARGV[0];
-my $nSim = $ARGV[1];
+my $simName = $ARGV[0];
+my $parametersFile = $ARGV[1];
+my $nSim = $ARGV[2];
 
 my $jobFileName = '';
 
 #make output directory
 unless(-d $outDir){
-    mkdir "$outDir" or die "Unable to make directory $outDir/$timeStamp: $!";
+    mkdir "$outDir" or die "Unable to make directory $outDir/$simName: $!";
 }
-mkdir "$outDir/$timeStamp" or die "Unable to make directory $outDir/$timeStamp: $!";
-`cp "$parametersFile" "$outDir/$timeStamp/parameters.mat"`;
+mkdir "$outDir/$simName" or die "Unable to make directory $outDir/$simName: $!";
+`cp "$parametersFile" "$outDir/$simName/parameters.mat"`;
 
 #compile MATLAB code
 #`./build.sh simulateHighthroughputExperiments`;
 #`./build.sh averageHighthroughputExperiments`;
 
 #copy executables
-mkdir "$outDir/$timeStamp/bin" or die "Unable to make directory $outDir/$timeStamp/bin: $!";;
-`cp -R bin/simulateHighthroughputExperiments $outDir/$timeStamp/bin`;
-`cp -R bin/averageHighthroughputExperiments $outDir/$timeStamp/bin`;
+mkdir "$outDir/$simName/bin" or die "Unable to make directory $outDir/$simName/bin: $!";;
+`cp -R bin/simulateHighthroughputExperiments $outDir/$simName/bin`;
+`cp -R bin/averageHighthroughputExperiments $outDir/$simName/bin`;
 
 #submit jobs for each condition
 my $template = HTML::Template->new(filename => 'job.simHtExpts.sh.tmpl');
-$template->param(timeStamp => $timeStamp);
+$template->param(simName => $simName);
 $template->param(linuxRunUser => $linuxRunUser);
 $template->param(emailAddress => $emailAddress);
 $template->param(outDir => $outDir);
@@ -71,7 +72,7 @@ $template->param(nodeTmpDir => $nodeTmpDir);
 
 my $submitJobs = '';
 for (my $n = 1; $n <= $nSim; $n++){
-	$jobFileName = sprintf("%s/%s/job.sim-%d.sh", $outDir, $timeStamp, $n);
+	$jobFileName = sprintf("%s/%s/job.sim-%d.sh", $outDir, $simName, $n);
 	open(FH, '>', $jobFileName) or die $!;
 	$template->param(n => $n);
     print FH $template->output;
@@ -80,8 +81,8 @@ for (my $n = 1; $n <= $nSim; $n++){
 }
 
 #set permissions and run jobs
-`sudo chmod -R 775 $outDir/$timeStamp`;
-`sudo chown -R $linuxUser:$linuxUser $outDir/$timeStamp`;
+`sudo chmod -R 775 $outDir/$simName`;
+`sudo chown -R $linuxUser:$linuxUser $outDir/$simName`;
 `$submitJobs`;
 
 #get job id
@@ -96,7 +97,7 @@ for (my $n = $simulationIdx; $n < $simulationIdx + $nSim; $n++){
 }
 
 $template = HTML::Template->new(filename => 'job.avgHtExpts.sh.tmpl');
-$template->param(timeStamp => $timeStamp);
+$template->param(simName => $simName);
 $template->param(linuxRunUser => $linuxRunUser);
 $template->param(emailAddress => $emailAddress);
 $template->param(outDir => $outDir);
@@ -105,15 +106,15 @@ $template->param(pathToRunTime => $pathToRunTime);
 $template->param(nodeTmpDir => $nodeTmpDir);
 $template->param(afterany => $afterany);
 
-$jobFileName = sprintf("%s/%s/job.avg.sh", $outDir, $timeStamp);
+$jobFileName = sprintf("%s/%s/job.avg.sh", $outDir, $simName);
 open(FH, '>', $jobFileName) or die $!;
 print FH $template->output;
 close (FH);
 
 #set permissions and submit job
-`sudo chmod -R 775 $outDir/$timeStamp`;
-`sudo chown -R $linuxUser:$linuxUser $outDir/$timeStamp`;
+`sudo chmod -R 775 $outDir/$simName`;
+`sudo chown -R $linuxUser:$linuxUser $outDir/$simName`;
 `sudo qsub $jobFileName`;
 
 #print status message with total number of jobs submitted
-print "$nSim simulations queued. Results will be stored at output/simHtExpts/$timeStamp.\n";
+print "$nSim simulations queued. Results will be stored at output/simHtExpts/$simName.\n";
