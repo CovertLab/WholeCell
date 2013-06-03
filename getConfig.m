@@ -11,3 +11,5 @@ config.schema   = 'wholecell';
 config.userName = 'wholecell';
 config.password = 'wholecell';
 config.outputPath = 'z:\projects\WholeCell\simulation\output\runSimulation';
+config.s3cmdPath = '/usr/bin/s3cmd';
+config.bitmillBashPath = '/cygdrive/c/bitmill-bash';

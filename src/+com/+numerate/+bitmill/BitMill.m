@@ -3,7 +3,7 @@
 % - post: submits job to bitmill queue
 % - cancel: removes job from bitmill queue
 % - getStatus: returns job status(es)
-% 
+%
 % See also: https://github.com/Numerate/bitmill-bash
 %
 % Author: Jonathan Karr, jkarr@stanford.edu
@@ -37,7 +37,7 @@ classdef BitMill
             %% parse inputs
             ip = inputParser();
             
-            ip.addParamValue('type', [], @(x) ischar(x));            
+            ip.addParamValue('type', [], @(x) ischar(x));
             ip.addParamValue('parameters', [], @(x) isstruct(x) && isequal(sort(fieldnames(x)), {'name'; 'value'}));
             ip.addParamValue('inputs', [], @(x) isstruct(x) && isequal(sort(fieldnames(x)), {'name'; 'url'}));
             ip.addParamValue('outputs', [], @(x) isstruct(x) && isequal(sort(fieldnames(x)), {'name'; 'url'}));
@@ -59,7 +59,7 @@ classdef BitMill
                 end
             end
             
-            for i = 1:numel(inputs)            
+            for i = 1:numel(inputs)
                 inputs(i).url = BitMill.s3_to_url(inputs(i).url);
             end
             
@@ -74,7 +74,9 @@ classdef BitMill
             job.inputs = num2cell(inputs(:));
             job.outputs = num2cell(outputs(:));
             
-            cmd = sprintf('post.sh ''%s''', strrep(strrep(...
+            config = getConfig();
+            cmd = sprintf('%s/dream/post.sh ''%s''', strrep(strrep(...
+                config.bitmillBashPath, ...
                 savejson('', job, 'ForceRootName', false, 'ArrayIndent', false), ...
                 sprintf('\n'), ''), sprintf('\t'), ''));
             [result, status, errMsg] = BitMill.execCmd(cmd);
@@ -108,7 +110,8 @@ classdef BitMill
             jobId = ip.Results.jobId;
             
             %% Run command
-            cmd = sprintf('cancel.sh %s', jobId);
+            config = getConfig();
+            cmd = sprintf('%s/cancel.sh %s', config.bitmillBashPath, jobId);
             [result, status, errMsg] = BitMill.execCmd(cmd);
             if status == 0
                 if numel(result) > 25
@@ -142,8 +145,9 @@ classdef BitMill
             jobId = ip.Results.jobId;
             
             %% Run command
+            config = getConfig();
             if isempty(jobId)
-                cmd = 'jobs.sh';
+                cmd = sprintf('%s/jobs.sh', config.bitmillBashPath);
                 [result, status, errMsg] = BitMill.execCmd(cmd);
                 if status == 0
                     result = loadjson(result);
@@ -154,7 +158,7 @@ classdef BitMill
                     end
                 end
             else
-                cmd = sprintf('jobs.sh %s', jobId);
+                cmd = sprintf('%s/jobs.sh %s', config.bitmillBashPath, jobId);
                 [result, status, errMsg] = BitMill.execCmd(cmd);
                 if status == 0
                     result = loadjson(result);
@@ -175,7 +179,12 @@ classdef BitMill
             if ispc
                 cmd = sprintf('bash.exe --login -c "%s"', strrep(cmd, '"', '\"'));
             elseif isunix
-                cmd = sprintf('export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu; %s', cmd);
+                [~, msg] = system('echo $BASH_VERSION');
+                if ~isempty(msg)
+                    cmd = sprintf('export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu; %s', cmd);
+                else
+                    cmd = sprintf('set LD_LIBRARY_PATH = (/lib/x86_64-linux-gnu); %s', cmd);
+                end
             end
             [status, msg] = system(cmd);
             result = [];

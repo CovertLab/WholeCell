@@ -39,6 +39,10 @@ simName = ip.Results.simName;
 bucketUrl = ip.Results.bucketUrl;
 localFolder = ip.Results.localFolder;
 
+validateattributes(simName, {'char'}, {'nonempty'});
+validateattributes(bucketUrl, {'char'}, {'nonempty'});
+validateattributes(localFolder, {'char'}, {'nonempty'});
+
 %% download
 [status, errMsg] = com.numerate.bitmill.s3cmd.get(...
     sprintf('%s/%s.*', bucketUrl, simName), localFolder);

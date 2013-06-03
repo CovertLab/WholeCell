@@ -14,12 +14,12 @@ classdef s3cmd
     methods (Static = true)
         function [status, errMsg] = makeBucket(bucketUrl)
             import com.numerate.bitmill.s3cmd;
-            [~, status, errMsg] = s3cmd.execCmd(sprintf('s3cmd mb %s', bucketUrl));
+            [~, status, errMsg] = s3cmd.execCmd(sprintf('mb %s', bucketUrl));
         end
         
         function [buckets, status, errMsg] = listBuckets()
             import com.numerate.bitmill.s3cmd;
-            [result, status, errMsg] = s3cmd.execCmd('s3cmd ls');
+            [result, status, errMsg] = s3cmd.execCmd('ls');
             if status == 0
                 result = result(:, 1:end-1);
                 
@@ -36,7 +36,7 @@ classdef s3cmd
         
         function [status, errMsg] = put(localFilePath, remoteFileUrl)
             import com.numerate.bitmill.s3cmd;
-            cmd = sprintf('s3cmd put %s %s', s3cmd.escapeLocalPath(localFilePath), remoteFileUrl);
+            cmd = sprintf('put %s %s', s3cmd.escapeLocalPath(localFilePath), remoteFileUrl);
             [~, status, errMsg] = s3cmd.execCmd(cmd);
         end
         
@@ -48,18 +48,18 @@ classdef s3cmd
                 forceOpt = '--force';
             end
             
-            cmd = sprintf('s3cmd get %s %s %s', forceOpt, remoteFileUrl, s3cmd.escapeLocalPath(localFilePath));
+            cmd = sprintf('get %s %s %s', forceOpt, remoteFileUrl, s3cmd.escapeLocalPath(localFilePath));
             [~, status, errMsg] = s3cmd.execCmd(cmd);
         end
         
         function [status, errMsg] = delete(fileUrl)
             import com.numerate.bitmill.s3cmd;
-            [~, status, errMsg] = s3cmd.execCmd(sprintf('s3cmd del %s', fileUrl));
+            [~, status, errMsg] = s3cmd.execCmd(sprintf('del %s', fileUrl));
         end
         
         function [contents, status, errMsg] = listContents(bucketUrl)
             import com.numerate.bitmill.s3cmd;
-            [result, status, errMsg] = s3cmd.execCmd(sprintf('s3cmd ls %s', bucketUrl));
+            [result, status, errMsg] = s3cmd.execCmd(sprintf('ls %s', bucketUrl));
             if status == 0
                 result = strsplit(sprintf('\n'), result);
                 
@@ -79,28 +79,35 @@ classdef s3cmd
         
         function [status, errMsg] = grantAclRead(remoteFile, account)
             import com.numerate.bitmill.s3cmd;
-            cmd = sprintf('s3cmd setacl --acl-grant=read:%s %s', account, remoteFile);
+            cmd = sprintf('setacl --acl-grant=read:%s %s', account, remoteFile);
             [~, status, errMsg] = s3cmd.execCmd(cmd);
         end
         
         function [status, errMsg] = grantAclReadAcp(remoteFile, account)
             import com.numerate.bitmill.s3cmd;
-            [~, status, errMsg] = s3cmd.execCmd(sprintf('s3cmd setacl --acl-grant=read_acp:%s %s', account, remoteFile));
+            [~, status, errMsg] = s3cmd.execCmd(sprintf('setacl --acl-grant=read_acp:%s %s', account, remoteFile));
         end
         
         function [status, errMsg] = grantAclWrite(remoteFile, account)
             import com.numerate.bitmill.s3cmd;
-            [~, status, errMsg] = s3cmd.execCmd(sprintf('s3cmd setacl --acl-grant=write:%s %s', account, remoteFile));
+            [~, status, errMsg] = s3cmd.execCmd(sprintf('setacl --acl-grant=write:%s %s', account, remoteFile));
         end
     end
     
     %helper methods
     methods (Static = true)
         function [result, status, errMsg] = execCmd(cmd)
+            config = getConfig();
+            cmd = fullfile(config.s3cmdPath, sprintf('s3cmd %s', cmd));
             if ispc
                 cmd = sprintf('bash.exe --login -c "%s"', strrep(cmd, '"', '\"'));
             elseif isunix
-                cmd = sprintf('export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu; %s', cmd);
+                [~, msg] = system('echo $BASH_VERSION');
+                if ~isempty(msg)
+                    cmd = sprintf('export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu; %s', cmd);
+                else
+                    cmd = sprintf('set LD_LIBRARY_PATH = (/lib/x86_64-linux-gnu); %s', cmd);
+                end
             end
             [status, msg] = system(cmd);
             result = [];

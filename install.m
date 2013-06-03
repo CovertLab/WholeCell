@@ -25,7 +25,7 @@ else
     outputPath = absolutepath(outputPath);
 end
 
-%% set server configuration
+%% set server, s3cmd, bitmill-bash configurations
 reply = ' ';
 while ~(isequal(upper(reply), 'Y') || isequal(upper(reply), 'N') || isempty(reply))
     reply = input('Would you like to setup your server configuration? Y/N [N]: ', 's');
@@ -39,6 +39,8 @@ hostName = input('Enter knowledge base server hostname: ', 's');
 schema = input('Enter knowledge base schema: ', 's');
 userName = input('Enter knowledge base username: ', 's');
 password = input('Enter knowledge base password: ', 's');
+s3cmdPath = input('Enter path to s3cmd (e.g. Windows: /usr/bin/s3cmd, Unix: /usr/bin/s3cmd): ', 's');
+bitmillBashPath = input('Enter path to bitmill-bash (e.g. Windows: /cygdrive/c/bitmill-bash, Unix: /usr/bin/bitmill-bash): ', 's');
 
 %edit knowledge base configuration
 fid = fopen('getConfig.m', 'w');
@@ -55,6 +57,8 @@ fprintf(fid, 'config.schema   = ''%s'';\n', strrep(schema, '''', ''''''));
 fprintf(fid, 'config.userName = ''%s'';\n', strrep(userName, '''', ''''''));
 fprintf(fid, 'config.password = ''%s'';\n', strrep(password, '''', ''''''));
 fprintf(fid, 'config.outputPath = ''%s'';\n', strrep(outputPath, '''', ''''''));
+fprintf(fid, 'config.s3cmdPath = ''%s'';\n', strrep(s3cmdPath, '''', ''''''));
+fprintf(fid, 'config.bitmillBashPath = ''%s'';\n', strrep(bitmillBashPath, '''', ''''''));
 fclose(fid);
 
 %% create output folders
