@@ -224,13 +224,12 @@ for (my $n = 1; $n <= $nJobs; $n++){
 	$template->param(n => $n);
     print FH $template->output;
 	close (FH);
-	`chmod 775 $jobFileName`;
 	
 	$submitJobs .= "sudo qsub $jobFileName; ";
 }
 
 #set permissions and run jobs
-`chmod -R 775 $outDir/$conditionSetTimeStamp`;
+`sudo chmod -R 775 $outDir/$conditionSetTimeStamp`;
 `sudo chown -R $linuxUser:$linuxUser $outDir/$conditionSetTimeStamp`;
 `$submitJobs`;
 
@@ -262,13 +261,12 @@ for (my $n = 1; $n <= $nJobs; $n++){
 	$template->param(afterany => $afterany);
 	print FH $template->output;
 	close (FH);
-	`chmod 775 $jobFileName2`;
 	
 	$submitJobs .= "sudo qsub $jobFileName2; ";
 }
 
 #set permissions and run jobs
-`chmod -R 775 $outDir/$conditionSetTimeStamp`;
+`sudo chmod -R 775 $outDir/$conditionSetTimeStamp`;
 `sudo chown -R $linuxUser:$linuxUser $outDir/$conditionSetTimeStamp`;
 `$submitJobs`;
 
@@ -310,7 +308,7 @@ for (my $i = 1; $i <= $nFirstStageAnalysisJobs + 1; $i++) {
 }
 
 #set permissions and submit job
-`chmod -R 775 $outDir/$conditionSetTimeStamp`;
+`sudo chmod -R 775 $outDir/$conditionSetTimeStamp`;
 `sudo chown -R $linuxUser:$linuxUser $outDir/$conditionSetTimeStamp`;
 `$submitJobs`;
 
