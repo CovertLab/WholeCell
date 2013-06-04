@@ -204,9 +204,13 @@ classdef DreamScoring
     end
     
     %helper methods
-    methods (Static = true, Access = protected)        
+    methods (Static = true, Access = protected)       
         %Get struct of parameter values
         function parameterVals = loadParameterVals(parameterVals, parameterValsPath)
+            import edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil;
+            import edu.stanford.covert.cell.sim.util.ConditionSet;
+            import edu.stanford.covert.util.StructUtil;
+            
             if ~isempty(parameterVals) && ~isempty(parameterValsPath)
                 throw(MException('loadParameterVals:error', 'Only 1 of parameterValsPath and parameterValsPath can be specified'))
             end
@@ -218,7 +222,7 @@ classdef DreamScoring
                     case '.mat'
                         parameterVals = load(parameterValsPath);
                     case '.xml'
-                        sim = edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil.load();
+                        sim = CachedSimulationObjectUtil.load();
                         tmp = ConditionSet.parseConditionSet(sim, parameterValsPath);
                         parameterVals = struct();
                         parameterVals = StructUtil.catstruct(parameterVals, tmp.options);
