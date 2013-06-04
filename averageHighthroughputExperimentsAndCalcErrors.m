@@ -109,6 +109,7 @@ elseif ~isempty(parameterValsPath)
         case '.mat'
             parameterVals = load(parameterValsPath);
         case '.xml'
+            sim = edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil.load();
             tmp = ConditionSet.parseConditionSet(sim, parameterValsPath);
             parameterVals = struct();
             parameterVals = StructUtil.catstruct(parameterVals, tmp.options);
