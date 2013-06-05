@@ -1036,10 +1036,7 @@ classdef FitConstants < handle
             
             %% initialize state
             this.applyParameterVectorToSimulation(paramVec);
-            initialGrowthFilterWidth = mr.initialGrowthFilterWidth;
-            mr.initialGrowthFilterWidth = Inf;
             sim.initializeState();
-            mr.initialGrowthFilterWidth = initialGrowthFilterWidth;
             
             %% Macromolecule counts
             [freeRnas, freeMons, freeCpxs, rnaInCpxs, monInCpxs, ...

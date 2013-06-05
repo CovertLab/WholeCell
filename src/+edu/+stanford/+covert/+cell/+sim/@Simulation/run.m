@@ -26,12 +26,23 @@ end
 %references
 g = this.state('Geometry');
 met = this.state('Metabolite');
+mr = this.state('MetabolicReaction');
 
 %allocate memory
 this.allocateMemoryForState(1);
 
 %initialize state
-this.initializeState();
+for i = 1:this.maxInitStateAttempts
+    this.initializeState();
+    
+    %If cell is dead, rerun initialize state
+    if abs(mr.growth - mr.meanInitialGrowthRate) / mr.meanInitialGrowthRate <= mr.initialGrowthFilterWidth || isempty(this.seed)
+        break;
+    end
+    
+    this.seed = this.randStream.randi([0 2^32-1], 1);
+end
+
 if isstruct(ic) && isfield(ic, 'states') && numel(fieldnames(ic.states)) > 0
     %override default initial conditions
     fields = fieldnames(ic.states);

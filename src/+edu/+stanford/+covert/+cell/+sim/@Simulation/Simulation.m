@@ -29,44 +29,46 @@ classdef Simulation < handle
             'stimulus'
             'media'
             };
+        
+        maxInitStateAttempts = 50 %max number of times to try initializing state
     end
     
     properties (SetAccess = private)
-        compartment             %compartments
-        gene                    %indices of genes
+        compartment               %compartments
+        gene                      %indices of genes
         
-        stateMetadata           %all state IDs, classes, names, etc.
-        states                  %cell array of states in alphabetical order
-        state_time              %reference to time state
-        state_metabolite        %reference to metabolite state
-        state_stimulus          %reference to stimulus state
+        stateMetadata             %all state IDs, classes, names, etc.
+        states                    %cell array of states in alphabetical order
+        state_time                %reference to time state
+        state_metabolite          %reference to metabolite state
+        state_stimulus            %reference to stimulus state
         
-        processMetadata         %all process IDs, classes, names, etc.
-        processes               %cell array of processes in alphabetical order
-        processInitOrderIndexs  %indices of processes in initialization order
-        processEvalOrderIndexs  %indices of processes in state evolution order
-        processesInInitOrder    %processes in initialization order
-        processesInEvalOrder    %processes in state evolution order
+        processMetadata           %all process IDs, classes, names, etc.
+        processes                 %cell array of processes in alphabetical order
+        processInitOrderIndexs    %indices of processes in initialization order
+        processEvalOrderIndexs    %indices of processes in state evolution order
+        processesInInitOrder      %processes in initialization order
+        processesInEvalOrder      %processes in state evolution order
         processIndex_translation        %index of translation process
         processIndex_tRNAAminoacylation %index of tRNA aminoacylation process
     end
     
     properties (Access = private)
-        randStream              %random number stream
+        randStream                %random number stream
     end
     
     %options. Use applyOptions(name1, value1, ...) to change one or more
     %options before a run.
     properties (SetAccess = private)
-        lengthSec   = 50000; %length of simulation (s); ~1.5x 9 h doubling time
-        stepSizeSec = 1;     %time scale of simulation (s)
-        verbosity   = 1;     %0 = no output, 5 = maximum output
-        seed        = [];    %set to any number for reproducible random streams
+        lengthSec   = 50000;      %length of simulation (s); ~1.5x 9 h doubling time
+        stepSizeSec = 1;          %time scale of simulation (s)
+        verbosity   = 1;          %0 = no output, 5 = maximum output
+        seed        = [];         %set to any number for reproducible random streams
         macromoleculeStateInitialization = 'multinomial';  %Toggles how inital state is calculated; see initializeState
         
-        geneticKnockouts = {}; %Whole Cell Model IDs of genes to be knocked out
-        stimulus         = []; %stimulus set values
-        media            = []; %media set values
+        geneticKnockouts = {};    %Whole Cell Model IDs of genes to be knocked out
+        stimulus         = [];    %stimulus set values
+        media            = [];    %media set values
     end
         
     methods

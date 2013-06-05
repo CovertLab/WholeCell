@@ -23,7 +23,6 @@ runner = SimulationRunner(...
 
 %construction KB and simulation
 sim = runner.constructKbAndSimulation();
-sim.state('MetabolicReaction').initialGrowthFilterWidth = 0.95;
 
 % verify initial growth rate distribution
 if verify && ~runner.isSimulationFitted(sim)

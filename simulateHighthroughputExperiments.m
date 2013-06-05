@@ -17,7 +17,8 @@
 % - initialConditions [.
 % - simPath [.mat file path]: Desired file path for simulated in silico
 %   experimental data (see HighthroughputExperimentsLogger for information
-%   about simulated data)
+%   about simulated data). Simulation results are only stored if simPath
+%   is set.
 % - verbosity [integer]: Desired verbosity level. Zero supresses output.
 %   Higher value prints more output.
 %
@@ -70,6 +71,7 @@ ip = inputParser();
 
 ip.addParamValue('seed', []);
 ip.addParamValue('lengthSec', []);
+ip.addParamValue('initialGrowthFilterWidth', 0.95);
 ip.addParamValue('geneticKnockouts', [], @(x) ischar(x) || iscell(x));
 ip.addParamValue('parameterVals', [], @(x) isstruct(x));
 ip.addParamValue('parameterValsPath', '', @(x) exist(x, 'file'));
@@ -80,15 +82,16 @@ ip.addParamValue('verbosity', 1);
 
 ip.parse(varargin{:});
 
-seed                  = ip.Results.seed;
-lengthSec             = ip.Results.lengthSec;
-geneticKnockouts      = ip.Results.geneticKnockouts;
-parameterVals         = ip.Results.parameterVals;
-parameterValsPath     = ip.Results.parameterValsPath;
-initialConditions     = ip.Results.initialConditions;
-initialConditionsPath = ip.Results.initialConditionsPath;
-simPath               = ip.Results.simPath;
-verbosity             = ip.Results.verbosity;
+seed                     = ip.Results.seed;
+lengthSec                = ip.Results.lengthSec;
+initialGrowthFilterWidth = ip.Results.initialGrowthFilterWidth;
+geneticKnockouts         = ip.Results.geneticKnockouts;
+parameterVals            = ip.Results.parameterVals;
+parameterValsPath        = ip.Results.parameterValsPath;
+initialConditions        = ip.Results.initialConditions;
+initialConditionsPath    = ip.Results.initialConditionsPath;
+simPath                  = ip.Results.simPath;
+verbosity                = ip.Results.verbosity;
 
 if ischar(seed)
     seed = str2double(seed);    
@@ -99,6 +102,11 @@ if ischar(lengthSec)
     lengthSec = str2double(lengthSec);    
 end
 validateattributes(lengthSec, {'numeric'}, {'integer'});
+
+if ischar(initialGrowthFilterWidth)
+    initialGrowthFilterWidth = str2double(initialGrowthFilterWidth);
+end
+validateattributes(initialGrowthFilterWidth, {'numeric'}, {'nonnan', 'nonnegative'});
 
 if ischar(geneticKnockouts)
     geneticKnockouts = {geneticKnockouts};
@@ -159,6 +167,12 @@ end
 %set simulation length
 if ~isempty(lengthSec)
     sim.applyOptions('lengthSec', lengthSec);
+end
+
+if ~isempty(initialGrowthFilterWidth)
+    tmp = struct;
+    tmp.states.MetabolicReaction.initialGrowthFilterWidth = initialGrowthFilterWidth;
+    sim.applyParameters(tmp);
 end
 
 %% setup loggers

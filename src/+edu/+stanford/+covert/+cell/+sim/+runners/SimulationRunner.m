@@ -181,10 +181,6 @@ classdef SimulationRunner < handle
             %handle to MetabolicReaction state
             mr = sim.state('MetabolicReaction');
             
-            %save filter
-            initialGrowthFilterWidth = mr.initialGrowthFilterWidth;
-            mr.initialGrowthFilterWidth = Inf;
-            
             %sample initial conditions
             growths = zeros(nSample, 1);
             for i = 1:nSample
@@ -192,9 +188,6 @@ classdef SimulationRunner < handle
                 sim.initializeState();
                 growths(i) = mr.growth;
             end
-            
-            %restore filter
-            mr.initialGrowthFilterWidth = initialGrowthFilterWidth;
             
             %test
             val = ...
@@ -420,10 +413,15 @@ classdef SimulationRunner < handle
                 %choose an initial simulation state with desired growth rate
                 sim.applyOptions('seed', 1);
                 mr = sim.state('MetabolicReaction');
-                initGrowthFilterW = mr.initialGrowthFilterWidth;
-                mr.initialGrowthFilterWidth = 1e-2;
-                sim.initializeState();
-                mr.initialGrowthFilterWidth = initGrowthFilterW;
+                mr.initialGrowthFilterWidth = 0.95;
+                while true
+                    sim.initializeState();
+                    if abs(mr.growth - mr.meanInitialGrowthRate) / mr.meanInitialGrowthRate <= 1e-2
+                        break;
+                    end
+                    
+                    sim.applyOptions('seed', this.randStream.randi([0 2^32-1], 1));
+                end
                 
                 %cache simulation object
                 if this.cacheSimulation

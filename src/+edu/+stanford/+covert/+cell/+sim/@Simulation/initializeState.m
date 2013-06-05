@@ -32,7 +32,6 @@ r = this.state('Rna');
 pm = this.state('ProteinMonomer');
 pc = this.state('ProteinComplex');
 mass = this.state('Mass');
-mr = this.state('MetabolicReaction');
 geom = this.state('Geometry');
 ftsZRing = this.state('FtsZRing');
 transcript = this.state('Transcript');
@@ -298,10 +297,4 @@ s.values = Condition.applyConditions(s.values, s.setValues, t.values); %stimulat
 %% Synchronize process states with simulation
 for i = 1:length(this.processes)
     this.processes{i}.copyFromState();
-end
-
-%% If cell is dead, rerun initialize state
-if abs(mr.growth - mr.meanInitialGrowthRate) / mr.meanInitialGrowthRate > mr.initialGrowthFilterWidth && ~isempty(this.seed)
-    this.seed = this.randStream.randi([0 2^32-1], 1);
-    this.initializeState();
 end
