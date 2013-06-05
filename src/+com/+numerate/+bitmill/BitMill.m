@@ -11,7 +11,7 @@
 % Last updated: 5/12/2013
 classdef BitMill
     properties (Constant = true)
-        s3Account = 'prod@numerate.com'
+        s3Account = 'dream@numerate.com'
     end
     
     %BitMill methods
@@ -75,8 +75,8 @@ classdef BitMill
             job.outputs = num2cell(outputs(:));
             
             config = getConfig();
-            cmd = sprintf('%s/dream/post.sh ''%s''', strrep(strrep(...
-                config.bitmillBashPath, ...
+            cmd = sprintf('%s/dream/post.sh ''%s''', config.bitmillBashPath, ...
+                strrep(strrep(...
                 savejson('', job, 'ForceRootName', false, 'ArrayIndent', false), ...
                 sprintf('\n'), ''), sprintf('\t'), ''));
             [result, status, errMsg] = BitMill.execCmd(cmd);
@@ -169,6 +169,23 @@ classdef BitMill
                 result(i).details.parameters = [result(i).details.parameters{:}]';
                 result(i).details.inputs = [result(i).details.inputs{:}]';
                 result(i).details.outputs = [result(i).details.outputs{:}]';
+            end
+        end
+        
+        function [email, status, errMsg] = getNotificationEmail()
+            import com.numerate.bitmill.BitMill;
+            
+            config = getConfig();
+            [result, status, errMsg] = BitMill.execCmd(sprintf('cat %s/bitmill.conf', config.bitmillBashPath));
+            email = [];
+            if status == 0
+                tmp = regexp(result, '^BITMILL_NOTIFY_EMAIL=(?<email>.*)$', 'names', 'dotexceptnewline', 'lineanchors');
+                if isempty(tmp)
+                    status = 1;
+                    errMsg = 'Unable to find email address in bitmill.conf.';
+                else
+                    email = tmp.email;
+                end
             end
         end
     end

@@ -746,7 +746,7 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             
             %print status
             if verbosity >= 1
-                fprintf('done.\n');
+                fprintf(' done.\n');
             end
         end
     end

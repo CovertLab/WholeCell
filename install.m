@@ -39,8 +39,8 @@ hostName = input('Enter knowledge base server hostname: ', 's');
 schema = input('Enter knowledge base schema: ', 's');
 userName = input('Enter knowledge base username: ', 's');
 password = input('Enter knowledge base password: ', 's');
-s3cmdPath = input('Enter path to s3cmd (e.g. Windows: /usr/bin/s3cmd, Unix: /usr/bin/s3cmd): ', 's');
-bitmillBashPath = input('Enter path to bitmill-bash (e.g. Windows: /cygdrive/c/bitmill-bash, Unix: /usr/bin/bitmill-bash): ', 's');
+s3cmdPath = input('Enter path to parent of s3cmd (e.g. /usr/bin): ', 's');
+bitmillBashPath = input('Enter path to bitmill-bash (e.g. /home/<user_name>/bitmill-bash): ', 's');
 
 %edit knowledge base configuration
 fid = fopen('getConfig.m', 'w');

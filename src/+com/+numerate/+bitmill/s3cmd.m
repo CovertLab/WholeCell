@@ -14,7 +14,7 @@ classdef s3cmd
     methods (Static = true)
         function [status, errMsg] = makeBucket(bucketUrl)
             import com.numerate.bitmill.s3cmd;
-            [~, status, errMsg] = s3cmd.execCmd(sprintf('mb %s', bucketUrl));
+            [~, status, errMsg] = s3cmd.execCmd(sprintf('mb "%s"', bucketUrl));
         end
         
         function [buckets, status, errMsg] = listBuckets()
@@ -36,7 +36,7 @@ classdef s3cmd
         
         function [status, errMsg] = put(localFilePath, remoteFileUrl)
             import com.numerate.bitmill.s3cmd;
-            cmd = sprintf('put %s %s', s3cmd.escapeLocalPath(localFilePath), remoteFileUrl);
+            cmd = sprintf('put "%s" "%s"', s3cmd.escapeLocalPath(localFilePath), remoteFileUrl);
             [~, status, errMsg] = s3cmd.execCmd(cmd);
         end
         
@@ -48,18 +48,18 @@ classdef s3cmd
                 forceOpt = '--force';
             end
             
-            cmd = sprintf('get %s %s %s', forceOpt, remoteFileUrl, s3cmd.escapeLocalPath(localFilePath));
+            cmd = sprintf('get %s "%s" "%s"', forceOpt, remoteFileUrl, s3cmd.escapeLocalPath(localFilePath));
             [~, status, errMsg] = s3cmd.execCmd(cmd);
         end
         
         function [status, errMsg] = delete(fileUrl)
             import com.numerate.bitmill.s3cmd;
-            [~, status, errMsg] = s3cmd.execCmd(sprintf('del %s', fileUrl));
+            [~, status, errMsg] = s3cmd.execCmd(sprintf('del "%s"', fileUrl));
         end
         
         function [contents, status, errMsg] = listContents(bucketUrl)
             import com.numerate.bitmill.s3cmd;
-            [result, status, errMsg] = s3cmd.execCmd(sprintf('ls %s', bucketUrl));
+            [result, status, errMsg] = s3cmd.execCmd(sprintf('ls "%s"', bucketUrl));
             if status == 0
                 result = strsplit(sprintf('\n'), result);
                 
@@ -77,20 +77,30 @@ classdef s3cmd
             end
         end
         
+        function [isFile, status, errMsg] = exist(remoteFile)
+            import com.numerate.bitmill.s3cmd;
+            cmd = sprintf('ls "%s"', remoteFile);
+            [msg, status, errMsg] = s3cmd.execCmd(cmd);
+            isFile = [];
+            if status == 0
+                isFile = strcmp(msg(max(1, end-length(remoteFile)):end-1), remoteFile);
+            end
+        end
+        
         function [status, errMsg] = grantAclRead(remoteFile, account)
             import com.numerate.bitmill.s3cmd;
-            cmd = sprintf('setacl --acl-grant=read:%s %s', account, remoteFile);
+            cmd = sprintf('setacl --acl-grant=read:%s "%s"', account, remoteFile);
             [~, status, errMsg] = s3cmd.execCmd(cmd);
         end
         
         function [status, errMsg] = grantAclReadAcp(remoteFile, account)
             import com.numerate.bitmill.s3cmd;
-            [~, status, errMsg] = s3cmd.execCmd(sprintf('setacl --acl-grant=read_acp:%s %s', account, remoteFile));
+            [~, status, errMsg] = s3cmd.execCmd(sprintf('setacl --acl-grant=read_acp:%s "%s"', account, remoteFile));
         end
         
         function [status, errMsg] = grantAclWrite(remoteFile, account)
             import com.numerate.bitmill.s3cmd;
-            [~, status, errMsg] = s3cmd.execCmd(sprintf('setacl --acl-grant=write:%s %s', account, remoteFile));
+            [~, status, errMsg] = s3cmd.execCmd(sprintf('setacl --acl-grant=write:%s "%s"', account, remoteFile));
         end
     end
     
@@ -98,7 +108,7 @@ classdef s3cmd
     methods (Static = true)
         function [result, status, errMsg] = execCmd(cmd)
             config = getConfig();
-            cmd = fullfile(config.s3cmdPath, sprintf('s3cmd %s', cmd));
+            cmd = sprintf('%s/s3cmd %s',  config.s3cmdPath, cmd);
             if ispc
                 cmd = sprintf('bash.exe --login -c "%s"', strrep(cmd, '"', '\"'));
             elseif isunix

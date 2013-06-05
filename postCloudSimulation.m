@@ -24,7 +24,7 @@
 % - errMsg [char]: error message from BitMill
 %
 % Example:
-%   >> [jobId, status, errMsg] = postCloudSimulation('simName', 'test20', 'bucketUrl', 's3://test-dream')
+%   >> [jobId, status, errMsg] = postCloudSimulation('simName', 'test20', 'bucketUrl', 's3://<your_bucket>')
 %      jobId = 82ddfe87-6263-4b40-a981-99bd17b8a68c
 %      status = 0
 %      errMsg = []
@@ -50,21 +50,28 @@ parameterVals = ip.Results.parameterVals;
 parameterValsPath = ip.Results.parameterValsPath;
 bucketUrl = ip.Results.bucketUrl;
 simName = ip.Results.simName;
-nSimulations = 2;
 
 if ~isempty(parameterVals) && ~isempty(parameterValsPath)
     throw(MException('postCloudSimulation:error', 'Only 1 of parameterValsPath and parameterValsPath can be specified'))
 end
 
+validateattributes(bucketUrl, {'char'}, {'nonempty'});
 validateattributes(simName, {'char'}, {'nonempty'});
 
 %% Chose S3 URLs
 remoteParameterValsPath = sprintf('%s/%s.parameters.mat', bucketUrl, simName);
-remoteOutputPath = sprintf('%s/%s.mat', bucketUrl, simName);
+remotePredictionsPath = sprintf('%s/%s.predictions.mat', bucketUrl, simName);
+remoteDistancesPath = sprintf('%s/%s.distances.mat', bucketUrl, simName);
 remoteStdoutPath = sprintf('%s/%s.out', bucketUrl, simName);
 remoteStderrPath = sprintf('%s/%s.err', bucketUrl, simName);
 
 %% save parameter values to S3
+%check that user doesn't already have file
+[isFile, status] = s3cmd.exist(remoteParameterValsPath); if status ~= 0 ||  isFile, throw(MException('postCloudSimulation:error', 'File already exists: %s', remoteParameterValsPath)), end
+[isFile, status] = s3cmd.exist(remoteDistancesPath);     if status ~= 0 ||  isFile, throw(MException('postCloudSimulation:error', 'File already exists: %s', remoteDistancesPath)),     end
+[isFile, status] = s3cmd.exist(remoteStdoutPath);        if status ~= 0 ||  isFile, throw(MException('postCloudSimulation:error', 'File already exists: %s', remoteStdoutPath)),        end
+[isFile, status] = s3cmd.exist(remoteStderrPath);        if status ~= 0 ||  isFile, throw(MException('postCloudSimulation:error', 'File already exists: %s', remoteStderrPath)),        end
+
 %save to temporary file if necessary
 saveParameterVals = isempty(parameterValsPath);
 if saveParameterVals
@@ -80,9 +87,6 @@ end
 if status ~= 0
     throw(MException('postCloudSimulation:error', 'Unable to upload file: %s', errMsg));
 end
-%s3cmd.grantAclRead(bucketUrl, BitMill.s3Account);
-%s3cmd.grantAclReadAcp(bucketUrl, BitMill.s3Account);
-%s3cmd.grantAclWrite(bucketUrl, BitMill.s3Account);
 s3cmd.grantAclRead(remoteParameterValsPath, BitMill.s3Account);
 
 %cleanup temporary file
@@ -93,13 +97,14 @@ end
 %% Post job
 type = 'dream_sim';
 parameters = [
-    struct('name', 'num_sims', 'value', nSimulations)
+    struct('name', 'notification_email', 'value', BitMill.getNotificationEmail())
     ]; %#ok<NBRAK>
 inputs = [
     struct('name', 'parameters', 'url', remoteParameterValsPath)
     ]; %#ok<NBRAK>
 outputs = [
-    struct('name', 'output', 'url', remoteOutputPath)
+    struct('name', 'predictions', 'url', remotePredictionsPath)
+    struct('name', 'distances', 'url', remoteDistancesPath)    
     struct('name', 'stdout', 'url', remoteStdoutPath)
     struct('name', 'stderr', 'url', remoteStderrPath)
     ];
