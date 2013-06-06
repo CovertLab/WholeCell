@@ -25,3 +25,6 @@
 % Last updated: 5/12/2013
 function [result, status, errMsg] = getCloudSimulationStatus(varargin)
 [result, status, errMsg] = com.numerate.bitmill.BitMill.getStatus(varargin{:});
+if status ~= 0
+    throw(MException('getCloudSimulationStatus:error', 'Error: %s', errMsg));
+end

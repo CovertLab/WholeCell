@@ -46,3 +46,6 @@ validateattributes(localFolder, {'char'}, {'nonempty'});
 %% download
 [status, errMsg] = com.numerate.bitmill.s3cmd.get(...
     sprintf('%s/%s.*', bucketUrl, simName), localFolder);
+if status ~= 0
+    throw(MException('downloadCloudSimulationResults:error', 'Error: %s', errMsg));
+end
