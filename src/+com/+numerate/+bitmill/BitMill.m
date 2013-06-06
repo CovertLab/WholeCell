@@ -195,7 +195,7 @@ classdef BitMill
         function [result, status, errMsg] = execCmd(cmd)
             if ispc
                 cmd = sprintf('bash.exe --login -c "%s"', strrep(cmd, '"', '\"'));
-            elseif isunix
+            elseif isunix && ~ismac
                 [~, msg] = system('echo $BASH_VERSION');
                 if ~isempty(msg)
                     cmd = sprintf('export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu; %s', cmd);

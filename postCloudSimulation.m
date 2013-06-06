@@ -67,10 +67,10 @@ remoteStderrPath = sprintf('%s/%s.err', bucketUrl, simName);
 
 %% save parameter values to S3
 %check that user doesn't already have file
-[isFile, status] = s3cmd.exist(remoteParameterValsPath); if status ~= 0 ||  isFile, throw(MException('postCloudSimulation:error', 'File already exists: %s', remoteParameterValsPath)), end
-[isFile, status] = s3cmd.exist(remoteDistancesPath);     if status ~= 0 ||  isFile, throw(MException('postCloudSimulation:error', 'File already exists: %s', remoteDistancesPath)),     end
-[isFile, status] = s3cmd.exist(remoteStdoutPath);        if status ~= 0 ||  isFile, throw(MException('postCloudSimulation:error', 'File already exists: %s', remoteStdoutPath)),        end
-[isFile, status] = s3cmd.exist(remoteStderrPath);        if status ~= 0 ||  isFile, throw(MException('postCloudSimulation:error', 'File already exists: %s', remoteStderrPath)),        end
+[isFile, status] = s3cmd.exist(remoteParameterValsPath); if status ~= 0 ||  isFile, throw(MException('postCloudSimulation:error', 'File already exists: %s. Choose a unique simName.', remoteParameterValsPath)), end
+[isFile, status] = s3cmd.exist(remoteDistancesPath);     if status ~= 0 ||  isFile, throw(MException('postCloudSimulation:error', 'File already exists: %s. Choose a unique simName.', remoteDistancesPath)),     end
+[isFile, status] = s3cmd.exist(remoteStdoutPath);        if status ~= 0 ||  isFile, throw(MException('postCloudSimulation:error', 'File already exists: %s. Choose a unique simName.', remoteStdoutPath)),        end
+[isFile, status] = s3cmd.exist(remoteStderrPath);        if status ~= 0 ||  isFile, throw(MException('postCloudSimulation:error', 'File already exists: %s. Choose a unique simName.', remoteStderrPath)),        end
 
 %save to temporary file if necessary
 saveParameterVals = isempty(parameterValsPath);
@@ -115,3 +115,6 @@ outputs = [
     'inputs', inputs, ...
     'outputs', outputs ...
     );
+if isempty(jobId)
+    throw(MException('postCloudSimulationStatus:error', 'Unable to post simulation job to BitMill'))
+end

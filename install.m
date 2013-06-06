@@ -35,10 +35,25 @@ if isequal(upper(reply), 'N') || isempty(reply)
 end
 
 %prompt user
-hostName = input('Enter knowledge base server hostname: ', 's');
-schema = input('Enter knowledge base schema: ', 's');
-userName = input('Enter knowledge base username: ', 's');
-password = input('Enter knowledge base password: ', 's');
+while true
+    setupKb = upper(input('Would you like to setup a connection to the knowledge base [Y/N]: ', 's'));
+    if strcmp(setupKb, 'Y') || strcmp(setupKb, 'N')
+        break;
+    end
+end
+
+if strcmp(setupKb, 'Y')
+    hostName = input('Enter knowledge base server hostname (e.g. covertlab.stanford.edu): ', 's');
+    schema = input('Enter knowledge base schema (e.g. wholecell): ', 's');
+    userName = input('Enter knowledge base username (e.g. wholecell): ', 's');
+    password = input('Enter knowledge base password (e.g. wholecell): ', 's');
+else
+    hostName = 'covertlab.stanford.edu';
+    schema = 'wholecell';
+    userName = 'wholecell';
+    password = 'wholecell';
+end
+
 s3cmdPath = input('Enter path to parent of s3cmd (e.g. /usr/bin): ', 's');
 bitmillBashPath = input('Enter path to bitmill-bash (e.g. /home/<user_name>/bitmill-bash): ', 's');
 
