@@ -116,5 +116,5 @@ outputs = [
     'outputs', outputs ...
     );
 if isempty(jobId) || status ~= 0
-    throw(MException('postCloudSimulationStatus:error', 'Unable to post simulation job to BitMill'))
+    throw(MException('postCloudSimulationStatus:error', 'Unable to post simulation job to BitMill: %s', errMsg))
 end

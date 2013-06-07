@@ -111,12 +111,16 @@ classdef s3cmd
             cmd = sprintf('%s/s3cmd %s',  config.s3cmdPath, cmd);
             if ispc
                 cmd = sprintf('bash.exe --login -c "%s"', strrep(cmd, '"', '\"'));
-            elseif isunix && ~ismac
-                [~, msg] = system('echo $BASH_VERSION');
-                if ~isempty(msg)
-                    cmd = sprintf('export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu; %s', cmd);
+            elseif isunix
+                if ismac
+                    cmd = sprintf('export DYLD_LIBRARY_PATH=; %s', cmd);
                 else
-                    cmd = sprintf('set LD_LIBRARY_PATH = (/lib/x86_64-linux-gnu); %s', cmd);
+                    [~, msg] = system('echo $BASH_VERSION');
+                    if ~isempty(msg)
+                        cmd = sprintf('export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu; %s', cmd);
+                    else
+                        cmd = sprintf('set LD_LIBRARY_PATH = (/lib/x86_64-linux-gnu); %s', cmd);
+                    end
                 end
             end
             [status, msg] = system(cmd);

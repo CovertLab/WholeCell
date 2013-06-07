@@ -79,7 +79,7 @@ fclose(fid);
 %% create output folders
 folders = {'bin', 'doc', 'output', 'tmp'};
 for i = 1:numel(folders)
-    if ~exists(folders{i}, 'dir')
+    if ~exist(folders{i}, 'dir')
         mkdir(folders{i});
     end
 end
