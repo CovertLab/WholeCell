@@ -708,13 +708,13 @@ classdef Translation < edu.stanford.covert.cell.sim.Process
                         idxs = pol.nascentMonomerLengths(i) + 1:min([
                             pol.monomerLengths(pol.boundMRNAs(i));
                             pol.nascentMonomerLengths(i) + elongationRate]);
-                        elngSeqs(i, :) = padarray(pol.monomerTRNASequences{pol.boundMRNAs(i)}(idxs)', [0 elongationRate-length(idxs)], 0, 'post');
+                        elngSeqs(i, :) = [pol.monomerTRNASequences{pol.boundMRNAs(i)}(idxs)' zeros(1, elongationRate-length(idxs))];
                         elngRibs(i) = true;
                     case rib.stalledValue
                         idxs = pol.proteolysisTagLengths(i) + 1:min([
                             pol.proteolysisTagLength;
                             pol.proteolysisTagLengths(i) + elongationRate]);
-                        elngSeqs(i, :) = padarray(pol.proteolysisTagTRNASequence(idxs)', [0 elongationRate-length(idxs)], 0, 'post');
+                        elngSeqs(i, :) = [pol.proteolysisTagTRNASequence(idxs)'  zeros(1, elongationRate-length(idxs))];
                         elngRibs(i) = true;
                 end
             end

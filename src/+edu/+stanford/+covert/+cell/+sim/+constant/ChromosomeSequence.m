@@ -16,8 +16,7 @@
 %
 %   Internally this class uses one property positiveStrandSequence to represent
 %   the mother and daughter chromosomes positive and negative sequences.
-%   Negative sequences are computed using the seqcomplement method of the
-%   bioinformatics toolbox.
+%   Negative sequences are computed using the seqcomplement method.
 %
 % Author: Jonathan Karr
 % Affilitation: Covert Lab, Department of Bioengineering, Stanford University
@@ -89,7 +88,7 @@ classdef ChromosomeSequence < handle
     %getters
     methods
         function seq = get.negativeStrandSequence(this)
-            seq = seqcomplement(this.positiveStrandSequence')';
+            seq = this.seqcomplement(this.positiveStrandSequence')';
         end
 
         function seq = get.positiveAndNegtiveStrandSequences(this)
@@ -184,7 +183,7 @@ classdef ChromosomeSequence < handle
                     varargout{1} = subsref(this.positiveStrandSequence, tmp);
                     siz = size(varargout{1});
                     siz(2) = sum(s.subs{2});
-                    varargout{1}(:, s.subs{2}, :) = reshape(seqcomplement(reshape(varargout{1}(:, s.subs{2}, :), 1, [])), siz);
+                    varargout{1}(:, s.subs{2}, :) = reshape(this.seqcomplement(reshape(varargout{1}(:, s.subs{2}, :), 1, [])), siz);
                 end
             else
                 [varargout{:}] = builtin('subsref', this, s);
@@ -354,7 +353,7 @@ classdef ChromosomeSequence < handle
                 lengths   = ones(size(positions));
                 seq = this.positiveStrandSequence(positions, 1);
                 if mod(i, 2) == 0 && ~isempty(seq)
-                    seq = seqcomplement(seq')';
+                    seq = this.seqcomplement(seq')';
                 end
                 sequences = num2cell(seq);
 
@@ -426,7 +425,8 @@ classdef ChromosomeSequence < handle
             subsequence = reshape(this.positiveStrandSequence(sub2ind(...
                 size(this.positiveStrandSequence), positions, ones(size(positions)))), ...
                 size(positions));
-            subsequence(mod(strands, 2) == 0) = seqcomplement(reshape(subsequence(mod(strands, 2) == 0), 1, []));
+            
+            subsequence(mod(strands, 2) == 0) = this.seqcomplement(reshape(subsequence(mod(strands, 2) == 0), 1, []));
         end
 
         function baseCounts = subsequenceBaseCounts(this, varargin)
@@ -436,6 +436,22 @@ classdef ChromosomeSequence < handle
                 sum(subsequence == 'C');
                 sum(subsequence == 'G');
                 sum(subsequence == 'T')];
+        end
+    end
+    
+    methods (Static = true)
+        function compseq = seqcomplement(seq)
+            compseq = seq;
+            compseq(seq == 'A') = 'T';
+            compseq(seq == 'C') = 'G';
+            compseq(seq == 'G') = 'C';
+            compseq(seq == 'T') = 'A';
+            compseq(seq == 'U') = 'A';
+            compseq(seq == 'a') = 't';
+            compseq(seq == 'c') = 'g';
+            compseq(seq == 'g') = 'c';
+            compseq(seq == 't') = 'a';
+            compseq(seq == 'u') = 'a';
         end
     end
 
