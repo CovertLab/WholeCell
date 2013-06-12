@@ -193,7 +193,7 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             this.chipSeq.sum_x2   = this.chipSeq.sum;
             this.rnaArray.sum_x2  = this.rnaArray.sum;
             this.protArray.sum_x2 = this.protArray.sum;
-            this.rxnFluxes.sum_x2 = this.rxnFluxes.sum;            
+            this.rxnFluxes.sum_x2 = this.rxnFluxes.sum;
             
             %temporary variables
             this.tmpRnaSeqTranscripts   = struct('sum', [], 'sum_x2', []);
@@ -422,32 +422,32 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             chr = sim.states{this.sIdx.chromosome};
             rna = sim.states{this.sIdx.rna};
             pc  = sim.states{this.sIdx.protcpx};
-            trn = sim.states{this.sIdx.transcript};            
+            trn = sim.states{this.sIdx.transcript};
             
             %% average over time
-            %calculate means and variances 
+            %calculate means and variances
             nTime = numel(this.time);
             
             this.metConcs.mean  = 1 / nTime * this.metConcs.sum;
-            this.dnaSeq.mean    = 1 / nTime * this.dnaSeq.sum;            
+            this.dnaSeq.mean    = 1 / nTime * this.dnaSeq.sum;
             this.rnaArray.mean  = 1 / nTime * this.rnaArray.sum;
             this.protArray.mean = 1 / nTime * this.protArray.sum;
             this.rxnFluxes.mean = 1 / nTime * this.rxnFluxes.sum;
             
             this.metConcs.exp_x2  = 1 / nTime * this.metConcs.sum_x2;
-            this.dnaSeq.exp_x2    = 1 / nTime * this.dnaSeq.sum_x2;            
+            this.dnaSeq.exp_x2    = 1 / nTime * this.dnaSeq.sum_x2;
             this.rnaArray.exp_x2  = 1 / nTime * this.rnaArray.sum_x2;
             this.protArray.exp_x2 = 1 / nTime * this.protArray.sum_x2;
             this.rxnFluxes.exp_x2 = 1 / nTime * this.rxnFluxes.sum_x2;
             
             this.metConcs.std  = sqrt(max(0, this.metConcs.exp_x2  - this.metConcs.mean  .^ 2));
-            this.dnaSeq.std    = sqrt(max(0, this.dnaSeq.exp_x2    - this.dnaSeq.mean    .^ 2));            
+            this.dnaSeq.std    = sqrt(max(0, this.dnaSeq.exp_x2    - this.dnaSeq.mean    .^ 2));
             this.rnaArray.std  = sqrt(max(0, this.rnaArray.exp_x2  - this.rnaArray.mean  .^ 2));
             this.protArray.std = sqrt(max(0, this.protArray.exp_x2 - this.protArray.mean .^ 2));
             this.rxnFluxes.std = sqrt(max(0, this.rxnFluxes.exp_x2 - this.rxnFluxes.mean .^ 2));
             
             this.metConcs  = rmfield(this.metConcs,  {'sum', 'sum_x2', 'exp_x2'});
-            this.dnaSeq    = rmfield(this.dnaSeq,    {'sum', 'sum_x2', 'exp_x2'});            
+            this.dnaSeq    = rmfield(this.dnaSeq,    {'sum', 'sum_x2', 'exp_x2'});
             this.rnaArray  = rmfield(this.rnaArray,  {'sum', 'sum_x2', 'exp_x2'});
             this.protArray = rmfield(this.protArray, {'sum', 'sum_x2', 'exp_x2'});
             this.rxnFluxes = rmfield(this.rxnFluxes, {'sum', 'sum_x2', 'exp_x2'});
@@ -598,7 +598,7 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
                 'labels',       this.labels ...
                 ); %#ok<NASGU>
             save(this.simPath, '-struct', 'data');
-        end        
+        end
     end
     
     methods (Static = true)
@@ -617,7 +617,7 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             nTimeMax = 0;
             isFilesSim = false(size(files));
             for i = 1:numel(files)
-                tmpPath = fullfile(inPathBase, files(i).name);                
+                tmpPath = fullfile(inPathBase, files(i).name);
                 vars = whos('-file', tmpPath);
                 if ~isequal({vars.name}', {
                         'chipSeq'; 'dnaSeq'; 'labels'; 'metConcs'; 'protArray';
@@ -659,9 +659,10 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             avgVals = struct();
             
             avgVals.singleCell = struct();
+            avgVals.singleCell.time   = NaN(1, nTimeMax);
             avgVals.singleCell.growth = NaN(nSim, nTimeMax);
             avgVals.singleCell.mass   = NaN(nSim, nTimeMax);
-            avgVals.singleCell.volume = NaN(nSim, nTimeMax);            
+            avgVals.singleCell.volume = NaN(nSim, nTimeMax);
             avgVals.singleCell.repInitTime  = NaN(nSim, 1);
             avgVals.singleCell.repTermTime  = NaN(nSim, 1);
             avgVals.singleCell.cellCycleLen = NaN(nSim, 1);
@@ -703,6 +704,7 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
                 vals = load(fullfile(inPathBase, files(i).name));
                 nTime = numel(vals.singleCell.time);
                 
+                avgVals.singleCell.time(1, 1:nTime)   = vals.singleCell.time;
                 avgVals.singleCell.growth(i, 1:nTime) = vals.singleCell.growth;
                 avgVals.singleCell.mass(  i, 1:nTime) = vals.singleCell.mass;
                 avgVals.singleCell.volume(i, 1:nTime) = vals.singleCell.volume;
