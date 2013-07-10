@@ -11,7 +11,16 @@ classdef FbaLPWriter
             
             p = sim.process('Metabolism');
             
+            %LP
+            p.formulateFBA([], [], false);
+            FbaLPWriter.write_lpsolve_lp(sim, [dirName filesep 'metabolism.full.mmol-gDCW-h.lp'], 'mmol/gDCW/h');
+            FbaLPWriter.write_cplex_lp(sim, [dirName filesep 'metabolism.full.mmol-gDCW-h.lpt'], 'mmol/gDCW/h');
+            
             %lindo
+            p.formulateFBA([], [], false);
+            FbaLPWriter.write_lindo(sim, [dirName filesep 'metabolism.full.molecules-cell-s.ltx'], 'molecules/cell/s');
+            FbaLPWriter.write_lindo(sim, [dirName filesep 'metabolism.full.mmol-gDCW-h.ltx'], 'mmol/gDCW/h');
+            
             p.formulateFBA([], [], true);
             FbaLPWriter.write_lindo(sim, [dirName filesep 'metabolism.reduced.molecules-cell-s.ltx'], 'molecules/cell/s');
             FbaLPWriter.write_lindo(sim, [dirName filesep 'metabolism.reduced.mmol-gDCW-h.ltx'], 'mmol/gDCW/h');
@@ -24,6 +33,235 @@ classdef FbaLPWriter
             FbaLPWriter.write_fba3_stoichiometry(sim, [dirName filesep 'metabolism.reduced.stm'], 'mmol/gDCW/h');
             
             FbaLPWriter.write_fba3_deletion(sim, [dirName filesep 'metabolismDeletions.txt']);
+        end
+        
+        %LP format
+        %- http://lpsolve.sourceforge.net/5.5/lp-format.htm
+        function write_lpsolve_lp(sim, fileName, units)
+            import edu.stanford.covert.cell.sim.util.FbaLPWriter;
+            import edu.stanford.covert.util.ConstantUtil;
+            
+            %parse unit option
+            %growth (molecules/cell/s) = growth (mmol/gDCW/h) * biomass scale / flux scale
+            if nargin < 3
+                units = 'molecules/cell/s';
+            elseif ~ismember(units, {'mmol/gDCW/h', 'molecules/cell/s'})
+                throw(MException('FbaLPWriter:error', 'Invalid units'))
+            end
+            
+            %references
+            p = sim.process('Metabolism');
+            
+            %numbers
+            nSubstrates = size(p.fbaReactionStoichiometryMatrix, 1);
+            nReactions = size(p.fbaReactionStoichiometryMatrix, 2);
+            
+            %IDs, names
+            [compartmentIDs, compartmentNames, substrateIDs, ~, substrateNames, reactionIDs, ~, reactionNames] = ...
+                edu.stanford.covert.cell.sim.util.FbaLPWriter.calcIDs(sim);
+            
+            %scale units
+            [fbaReactionStoichiometryMatrix, fluxBounds, fbaObjective] = FbaLPWriter.scaleNetwork(sim, units, ConstantUtil.realmax);
+            
+            %initialize
+            str = [];
+            
+            %header
+            str = [str sprintf('/*\n')];
+            str = [str sprintf('%s\n', 'Mycoplasma genitalium metabolism')];
+            str = [str sprintf('Generated %s by edu.stanford.covert.cell.sim.util.FbaLPWriter\n', datestr(now, 31))];
+            str = [str sprintf('*/\n\n')];
+            
+            %objective
+            if strcmp(units, 'mmol/gDCW/h')
+                str = [str sprintf('// Maximize (mmol/gDCW)\n')];
+            else
+                str = [str sprintf('// Maximize (molecules/cell)\n')];
+            end
+            
+            idxs = find(fbaObjective);
+            tmp = cellfun(@(id, coeff) sprintf('%e %s', coeff, id), reactionIDs(idxs), num2cell(fbaObjective(idxs)), 'UniformOutput', false);
+            str = [str sprintf('max: %s;\n', strjoin(' + ', tmp{:}))];
+            str = [str sprintf('\n')];
+            
+            %Constraints
+            str = [str sprintf('// Metabolites with compartments\n')];
+            for i = 1:numel(compartmentIDs);
+                str = [str sprintf('// - %s: %s\n', compartmentIDs{i}, compartmentNames{i})];
+            end
+            for i = 1:nSubstrates
+                idxs = find(fbaReactionStoichiometryMatrix(i, :));
+                if isempty(idxs)
+                    continue;
+                end
+                
+                tmp = cell(size(idxs));
+                for j = 1:numel(idxs)
+                    if fbaReactionStoichiometryMatrix(i, idxs(j)) == ceil(fbaReactionStoichiometryMatrix(i, idxs(j)))
+                        tmp{j} = sprintf('%d %s', fbaReactionStoichiometryMatrix(i, idxs(j)), reactionIDs{idxs(j)});
+                    else
+                        tmp{j} = sprintf('%e %s', fbaReactionStoichiometryMatrix(i, idxs(j)), reactionIDs{idxs(j)});
+                    end
+                end
+                str = [str sprintf('%s: %s = 0;\n', substrateIDs{i}, strjoin(' + ', tmp{:}))];
+            end
+            str = [str sprintf('\n')];
+            
+            %Bounds
+            if strcmp(units, 'mmol/gDCW/h')
+                str = [str sprintf('// Bounds (mmol/gDCW/h)\n')];
+            else
+                str = [str sprintf('// Bounds (1/cell/s)\n')];
+            end
+            for i = 1:nReactions
+                if fluxBounds(i, 1) == ceil(fluxBounds(i, 1))
+                    lower = sprintf('%d <= ', fluxBounds(i, 1));
+                else
+                    lower = sprintf('%e <= ', fluxBounds(i, 1));
+                end
+                
+                if fluxBounds(i, 2) == ceil(fluxBounds(i, 2))
+                    upper = sprintf(' <= %d', fluxBounds(i, 2));
+                else
+                    upper = sprintf(' <= %e', fluxBounds(i, 2));
+                end
+                
+                if fluxBounds(i, 1) == fluxBounds(i, 2)
+                    if fluxBounds(i, 1) == ceil(fluxBounds(i, 1))
+                        str = [str sprintf('%s = %d;\n', reactionIDs{i}, fluxBounds(i, 1))];
+                    else
+                        str = [str sprintf('%s = %e;\n', reactionIDs{i}, fluxBounds(i, 1))];
+                    end
+                else
+                    if ~isempty(lower) || ~isempty(upper)
+                        str = [str sprintf('%s%s%s;\n', lower, reactionIDs{i}, upper)];
+                    end
+                end
+            end
+            str = [str sprintf('\n')];
+            
+            %define variables
+            %str = [str sprintf('// Declare reactions\n')];
+            %str = [str sprintf('free %s;\n', strjoin(', ', reactionIDs{:}))];
+            
+            %write file
+            fid = fopen(fileName, 'w');
+            fwrite(fid, str);
+            fclose(fid);
+        end
+        
+        %LP format
+        %- http://lpsolve.sourceforge.net/5.5/CPLEX-format.htm
+        %- http://www.gurobi.com/documentation/5.5/reference-manual/node902
+        %- http://www2.isye.gatech.edu/~wcook/qsopt/hlp/ff_lp_format.htm
+        function write_cplex_lp(sim, fileName, units)
+            import edu.stanford.covert.cell.sim.util.FbaLPWriter;
+            import edu.stanford.covert.util.ConstantUtil;
+            
+            %parse unit option
+            %growth (molecules/cell/s) = growth (mmol/gDCW/h) * biomass scale / flux scale
+            if nargin < 3
+                units = 'molecules/cell/s';
+            elseif ~ismember(units, {'mmol/gDCW/h', 'molecules/cell/s'})
+                throw(MException('FbaLPWriter:error', 'Invalid units'))
+            end
+            
+            %references
+            p = sim.process('Metabolism');
+            
+            %numbers
+            nSubstrates = size(p.fbaReactionStoichiometryMatrix, 1);
+            nReactions = size(p.fbaReactionStoichiometryMatrix, 2);
+            
+            %IDs, names
+            [compartmentIDs, compartmentNames, substrateIDs, ~, ~, reactionIDs, ~, ~] = ...
+                edu.stanford.covert.cell.sim.util.FbaLPWriter.calcIDs(sim);
+            
+            %scale units
+            [fbaReactionStoichiometryMatrix, fluxBounds, fbaObjective] = FbaLPWriter.scaleNetwork(sim, units, ConstantUtil.realmax);
+            
+            %initialize
+            str = [];
+            
+            %header
+            str = [str sprintf('\\ %s\n', 'Mycoplasma genitalium metabolism')];
+            str = [str sprintf('\\ Generated %s by edu.stanford.covert.cell.sim.util.FbaLPWriter\n\n', datestr(now, 31))];
+            
+            %objective
+            str = [str sprintf('Maximize\n')];
+            if strcmp(units, 'mmol/gDCW/h')
+                str = [str sprintf('\\ mmol/gDCW\n')];
+            else
+                str = [str sprintf('\\ molecules/cell\n')];
+            end
+            
+            idxs = find(fbaObjective);
+            tmp = cellfun(@(id, coeff) sprintf('%e %s', coeff, id), reactionIDs(idxs), num2cell(fbaObjective(idxs)), 'UniformOutput', false);
+            str = [str strrep(sprintf(' obj: %s\n', strjoin(' + ', tmp{:})), ' + -', ' -')];
+            
+            %Constraints
+            str = [str sprintf('Subject To\n')];
+            str = [str sprintf('\\ Metabolites\n')];
+            str = [str sprintf('\\ Compartments\n')];
+            for i = 1:numel(compartmentIDs);
+                str = [str sprintf('\\ - %s: %s\n', compartmentIDs{i}, compartmentNames{i})];
+            end
+            for i = 1:nSubstrates
+                idxs = find(fbaReactionStoichiometryMatrix(i, :));
+                if isempty(idxs)
+                    continue;
+                end
+                
+                tmp = cell(size(idxs));
+                for j = 1:numel(idxs)
+                    if fbaReactionStoichiometryMatrix(i, idxs(j)) == ceil(fbaReactionStoichiometryMatrix(i, idxs(j)))
+                        tmp{j} = sprintf('%d %s', fbaReactionStoichiometryMatrix(i, idxs(j)), reactionIDs{idxs(j)});
+                    else
+                        tmp{j} = sprintf('%e %s', fbaReactionStoichiometryMatrix(i, idxs(j)), reactionIDs{idxs(j)});
+                    end
+                end
+                str = [str strrep(sprintf(' %s: %s = 0\n', substrateIDs{i}, strjoin(' + ', tmp{:})), ' + -', ' -')];
+            end
+            
+            %Bounds
+            str = [str sprintf('Bounds\n')];
+            if strcmp(units, 'mmol/gDCW/h')
+                str = [str sprintf('\\ mmol/gDCW/h\n')];
+            else
+                str = [str sprintf('\\ 1/cell/s\n')];
+            end
+            for i = 1:nReactions
+                if fluxBounds(i, 1) == ceil(fluxBounds(i, 1))
+                    lower = sprintf('%d', fluxBounds(i, 1));
+                else
+                    lower = sprintf('%e', fluxBounds(i, 1));
+                end
+                
+                if fluxBounds(i, 2) == ceil(fluxBounds(i, 2))
+                    upper = sprintf('%d', fluxBounds(i, 2));
+                else
+                    upper = sprintf('%e', fluxBounds(i, 2));
+                end
+                
+                if fluxBounds(i, 1) == fluxBounds(i, 2)
+                    str = [str sprintf(' %s = %s\n', reactionIDs{i}, lower)];
+                else
+                    if ~isempty(lower)
+                        str = [str sprintf(' %s >= %s\n', reactionIDs{i}, lower)];
+                    end
+                    if ~isempty(upper)
+                        str = [str sprintf(' %s <= %s\n', reactionIDs{i}, upper)];
+                    end
+                end
+            end
+            
+            %End
+            str = [str sprintf('End\n')];
+            
+            %write file
+            fid = fopen(fileName, 'w');
+            fwrite(fid, str);
+            fclose(fid);
         end
         
         function write_lindo(sim, fileName, units)
@@ -78,7 +316,7 @@ classdef FbaLPWriter
                 if isempty(rxnIdxs)
                     continue;
                 end
-
+                
                 constraint = [];
                 for j = 1:numel(rxnIdxs)
                     coeff = fbaReactionStoichiometryMatrix(i, rxnIdxs(j));
@@ -192,7 +430,7 @@ classdef FbaLPWriter
             for i = 1:size(p.substrateMetaboliteLocalIndexs, 1)
                 idx = p.fbaSubstrateIndexs_substrates(p.substrateMetaboliteLocalIndexs(i) == subIdxs);
                 if isempty(idx)
-                    continue; 
+                    continue;
                 elseif numel(idx)==1
                     id = substrateIDs{idx};
                 else
@@ -210,7 +448,7 @@ classdef FbaLPWriter
             for i = 1:size(p.substrateMonomerLocalIndexs, 1)
                 idx = p.fbaSubstrateIndexs_substrates(p.substrateMonomerLocalIndexs(i) == subIdxs);
                 if isempty(idx)
-                    continue; 
+                    continue;
                 elseif numel(idx)==1
                     id = substrateIDs{idx};
                 else
@@ -225,10 +463,10 @@ classdef FbaLPWriter
             str = [str sprintf('// %s //\n', repmat(' ', 1, idWidth + nameWidth + 6))];
             
             str = [str sprintf('// \tProtein Complexs %s //\n', repmat(' ', 1, idWidth + nameWidth +4 - length('Protein Complexs')))];
-            for i = 1:size(p.substrateComplexLocalIndexs, 1)                
+            for i = 1:size(p.substrateComplexLocalIndexs, 1)
                 idx = p.fbaSubstrateIndexs_substrates(p.substrateComplexLocalIndexs(i) == subIdxs);
                 if isempty(idx)
-                    continue; 
+                    continue;
                 elseif numel(idx)==1
                     id = substrateIDs{idx};
                 else
@@ -243,10 +481,10 @@ classdef FbaLPWriter
             str = [str sprintf('// %s //\n', repmat(' ', 1, idWidth + nameWidth + 6))];
             
             str = [str sprintf('// \tInternal exchange constraints %s //\n', repmat(' ', 1, idWidth + nameWidth +4 - length('Internal exchange constraints')))];
-            for i = 1:size(p.fbaSubstrateIndexs_metaboliteInternalExchangeConstraints, 1)                
+            for i = 1:size(p.fbaSubstrateIndexs_metaboliteInternalExchangeConstraints, 1)
                 idx = p.fbaSubstrateIndexs_metaboliteInternalExchangeConstraints(i);
                 if isempty(idx)
-                    continue; 
+                    continue;
                 elseif numel(idx)==1
                     id = substrateIDs{idx};
                 else
@@ -258,7 +496,7 @@ classdef FbaLPWriter
                     [id repmat(' ', 1, idWidth - numel(id))], ...
                     [name repmat(' ', 1, nameWidth - numel(name))])]; %#ok<*AGROW>
             end
-            str = [str sprintf('// %s //\n', repmat(' ', 1, idWidth + nameWidth + 6))];            
+            str = [str sprintf('// %s //\n', repmat(' ', 1, idWidth + nameWidth + 6))];
             
             str = [str sprintf('// \tPseudospecies %s //\n', repmat(' ', 1, idWidth + nameWidth +4 - length('Pseudospecies')))];
             str = [str sprintf('// \t\t%s\t%s //\n', ...
@@ -275,27 +513,27 @@ classdef FbaLPWriter
             
             %biomass production in mmol/gDCW
             str = [str sprintf('// \tBiomass production //\n')];
-         
+            
             biomassScaleFactor = 100;
             idx = p.fbaReactionIndexs_biomassProduction;
             stoichiometry = [];
             stoichiometry2 = [];
-
+            
             scIdxs = p.fbaSubstrateIndexs_substrates(fbaSMat(p.fbaSubstrateIndexs_substrates, idx) < 0);
             for j = 1:numel(scIdxs)
                 val = fbaSMat(scIdxs(j), idx);
-
+                
                 stoichiometry = [stoichiometry sprintf('%s%f %s ', repmat('+', 1, val >= 0), val * biomassScaleFactor, substrateIDs{scIdxs(j)})];
                 stoichiometry2 = [stoichiometry2 sprintf('// %17.6f %s%s //\n', ...
                     val, ...
                     substrateIDs{scIdxs(j)}, ...
                     repmat(' ', 1, idWidth-numel(substrateIDs{scIdxs(j)})))];
             end
-
+            
             scIdxs = p.fbaSubstrateIndexs_substrates(fbaSMat(p.fbaSubstrateIndexs_substrates, idx) > 0);
             for j = 1:numel(scIdxs)
                 val = fbaSMat(scIdxs(j), idx);
-
+                
                 stoichiometry = [stoichiometry sprintf('%s%f %s ', repmat('+', 1, val >= 0), val * biomassScaleFactor, substrateIDs{scIdxs(j)})];
                 stoichiometry2 = [stoichiometry2 sprintf('// %17.6f %s%s //\n', ...
                     val, ...
@@ -303,10 +541,10 @@ classdef FbaLPWriter
                     repmat(' ', 1, idWidth-numel(substrateIDs{scIdxs(j)})))];
             end
             stoichiometry = stoichiometry(1:end-1);
-
+            
             str = [str stoichiometry2];
             str = [str sprintf('\n')];
-
+            
             str = [str sprintf('// Biomass production in mmol/gDCW //\n')];
             spaces = find(stoichiometry == ' ');
             spaces = [spaces(2:2:end) length(stoichiometry)+1];
@@ -318,7 +556,7 @@ classdef FbaLPWriter
                 str = [str sprintf('%s +%d SbBmss%02d 0 SbGrth%02d // Sub growth - %d //\n', stoichiometry(splits(j)+1:splits(j+1)-1), biomassScaleFactor, j, j, j)];
                 growthStoichiometry = [growthStoichiometry sprintf('-1 SbBmss%02d ', j)];
             end
-
+            
             str = [str sprintf('%s +1 Biomass 0 %s // %s //\n', growthStoichiometry(1:end-1), reactionIDs{idx}, reactionNames{idx})];
             str = [str sprintf('\n')];
             
@@ -389,7 +627,7 @@ classdef FbaLPWriter
             for i = 1:numel(p.fbaReactionIndexs_metaboliteExternalExchange)
                 idx = p.fbaReactionIndexs_metaboliteExternalExchange(i);
                 scIdxs = find(fbaSMat(:, idx));
-                                
+                
                 stoichiometry = [];
                 for j = 1:numel(scIdxs)
                     val = fbaSMat(scIdxs(j), idx);
@@ -508,14 +746,14 @@ classdef FbaLPWriter
             
             [sIdxs, ~] = ind2sub([size(m.reactionStoichiometryMatrix, 1) size(m.reactionStoichiometryMatrix, 3)], m.substrateIndexs_fba);
             for i = 1:numel(sim.gene.wholeCellModelIDs)
-                enzIdxs = find(geneEnzComp(i, :));                
+                enzIdxs = find(geneEnzComp(i, :));
                 subIdxs = find(geneSubComp(i, :));
                 
                 if isempty(enzIdxs) && isempty(subIdxs)
                     continue;
                 end
                 
-                fbaSubIdxs = m.fbaSubstrateIndexs_substrates(ismember(sIdxs, subIdxs));                                
+                fbaSubIdxs = m.fbaSubstrateIndexs_substrates(ismember(sIdxs, subIdxs));
                 rxnIdxs = any(m.fbaReactionCatalysisMatrix(:, enzIdxs), 2) | any(m.fbaReactionStoichiometryMatrix(fbaSubIdxs, :), 1)';
                 rxnIDs = unique(reactionIDs(rxnIdxs));
                 for j = 1:7:numel(rxnIDs)
@@ -572,7 +810,7 @@ classdef FbaLPWriter
             
             %% compartments
             compartmentIDs = p.compartment.wholeCellModelIDs(p.substrateMetaboliteCompartmentIndexs(1, :));
-            compartmentNames = p.compartment.names(p.substrateMetaboliteCompartmentIndexs(1, :));            
+            compartmentNames = p.compartment.names(p.substrateMetaboliteCompartmentIndexs(1, :));
             
             %% substrates
             tmp_substrateShortLongIDs = struct;
@@ -665,7 +903,7 @@ classdef FbaLPWriter
             externalExchangeReactionIDs = {};
             externalExchangeReactionNames = {};
             for i = 1:numel(p.fbaReactionIndexs_metaboliteExternalExchange)
-                sIdx = find(p.fbaReactionStoichiometryMatrix(:, p.fbaReactionIndexs_metaboliteExternalExchange(i)) ~= 0);                
+                sIdx = find(p.fbaReactionStoichiometryMatrix(:, p.fbaReactionIndexs_metaboliteExternalExchange(i)) ~= 0);
                 longid = substrateLongIDs{sIdx};
                 id = substrateIDs{sIdx};
                 name = substrateNames{sIdx};
