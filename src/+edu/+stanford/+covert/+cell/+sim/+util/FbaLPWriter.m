@@ -57,102 +57,49 @@ classdef FbaLPWriter
             %references
             p = sim.process('Metabolism');
             
-            %numbers
-            nSubstrates = size(p.fbaReactionStoichiometryMatrix, 1);
-            nReactions = size(p.fbaReactionStoichiometryMatrix, 2);
-            
             %IDs, names
             [compartmentIDs, compartmentNames, substrateIDs, ~, substrateNames, reactionIDs, ~, reactionNames] = ...
-                edu.stanford.covert.cell.sim.util.FbaLPWriter.calcIDs(sim);
+                edu.stanford.covert.cell.sim.util.FbaLPWriter.calcIDs(sim, true);
+            compartmentIDs = [compartmentIDs; 'none'];
+            compartmentNames = [compartmentNames; 'None'];
+            
+            idx = 0;
+            for i = 1:numel(substrateIDs)
+                if isempty(substrateIDs{i}) || strcmp(substrateIDs{i}, '[none]')
+                    idx = idx + 1;
+                    substrateIDs{i} = sprintf('Constraint_%03d[none]', idx);
+                    substrateNames{i} = sprintf('Constraint %d', idx);
+                end
+            end
             
             %scale units
             [fbaReactionStoichiometryMatrix, fluxBounds, fbaObjective] = FbaLPWriter.scaleNetwork(sim, units, ConstantUtil.realmax);
             
-            %initialize
-            str = [];
-            
-            %header
-            str = [str sprintf('/*\n')];
-            str = [str sprintf('%s\n', 'Mycoplasma genitalium metabolism')];
-            str = [str sprintf('Generated %s by edu.stanford.covert.cell.sim.util.FbaLPWriter\n', datestr(now, 31))];
-            str = [str sprintf('*/\n\n')];
-            
-            %objective
-            if strcmp(units, 'mmol/gDCW/h')
-                str = [str sprintf('// Maximize (mmol/gDCW)\n')];
-            else
-                str = [str sprintf('// Maximize (molecules/cell)\n')];
+            enzGeneComp = p.enzymeGeneComposition();
+            tmp = any(enzGeneComp, 2);
+            geneIDs = p.gene.wholeCellModelIDs(tmp);
+            rxnGeneMat = (p.fbaReactionCatalysisMatrix * enzGeneComp(tmp, :)') ~= 0;            
+            grRules = cell(size(reactionIDs));
+            for i = 1:numel(reactionIDs)
+                grRules{i} = strjoin(' and ', geneIDs{rxnGeneMat(i, :)});
             end
             
-            idxs = find(fbaObjective);
-            tmp = cellfun(@(id, coeff) sprintf('%e %s', coeff, id), reactionIDs(idxs), num2cell(fbaObjective(idxs)), 'UniformOutput', false);
-            str = [str sprintf('max: %s;\n', strjoin(' + ', tmp{:}))];
-            str = [str sprintf('\n')];
+            model = struct();
+            model.description = 'Mycoplasma genitalium metabolic sub-model';
+            model.rxns = reactionIDs;
+            model.mets = substrateIDs;
+            model.S = fbaReactionStoichiometryMatrix;
+            model.lb = fluxBounds(:, 1);
+            model.ub = fluxBounds(:, 2);
+            model.rev = fluxBounds(:, 1) < 0 & fluxBounds(:, 2) > 0;
+            model.c = fbaObjective;
+            model.rxnNames = reactionNames;
+            model.metNames = substrateNames;
+            model.grRules = grRules;
+            model.genes = geneIDs;
             
-            %Constraints
-            str = [str sprintf('// Metabolites with compartments\n')];
-            for i = 1:numel(compartmentIDs);
-                str = [str sprintf('// - %s: %s\n', compartmentIDs{i}, compartmentNames{i})];
-            end
-            for i = 1:nSubstrates
-                idxs = find(fbaReactionStoichiometryMatrix(i, :));
-                if isempty(idxs)
-                    continue;
-                end
-                
-                tmp = cell(size(idxs));
-                for j = 1:numel(idxs)
-                    if fbaReactionStoichiometryMatrix(i, idxs(j)) == ceil(fbaReactionStoichiometryMatrix(i, idxs(j)))
-                        tmp{j} = sprintf('%d %s', fbaReactionStoichiometryMatrix(i, idxs(j)), reactionIDs{idxs(j)});
-                    else
-                        tmp{j} = sprintf('%e %s', fbaReactionStoichiometryMatrix(i, idxs(j)), reactionIDs{idxs(j)});
-                    end
-                end
-                str = [str sprintf('%s: %s = 0;\n', substrateIDs{i}, strjoin(' + ', tmp{:}))];
-            end
-            str = [str sprintf('\n')];
-            
-            %Bounds
-            if strcmp(units, 'mmol/gDCW/h')
-                str = [str sprintf('// Bounds (mmol/gDCW/h)\n')];
-            else
-                str = [str sprintf('// Bounds (1/cell/s)\n')];
-            end
-            for i = 1:nReactions
-                if fluxBounds(i, 1) == ceil(fluxBounds(i, 1))
-                    lower = sprintf('%d <= ', fluxBounds(i, 1));
-                else
-                    lower = sprintf('%e <= ', fluxBounds(i, 1));
-                end
-                
-                if fluxBounds(i, 2) == ceil(fluxBounds(i, 2))
-                    upper = sprintf(' <= %d', fluxBounds(i, 2));
-                else
-                    upper = sprintf(' <= %e', fluxBounds(i, 2));
-                end
-                
-                if fluxBounds(i, 1) == fluxBounds(i, 2)
-                    if fluxBounds(i, 1) == ceil(fluxBounds(i, 1))
-                        str = [str sprintf('%s = %d;\n', reactionIDs{i}, fluxBounds(i, 1))];
-                    else
-                        str = [str sprintf('%s = %e;\n', reactionIDs{i}, fluxBounds(i, 1))];
-                    end
-                else
-                    if ~isempty(lower) || ~isempty(upper)
-                        str = [str sprintf('%s%s%s;\n', lower, reactionIDs{i}, upper)];
-                    end
-                end
-            end
-            str = [str sprintf('\n')];
-            
-            %define variables
-            %str = [str sprintf('// Declare reactions\n')];
-            %str = [str sprintf('free %s;\n', strjoin(', ', reactionIDs{:}))];
-            
-            %write file
-            fid = fopen(fileName, 'w');
-            fwrite(fid, str);
-            fclose(fid);
+            writeCbModel(model, 'sbml', fileName, compartmentIDs, compartmentNames);
+            movefile([fileName '.xml'], fileName);
         end
         
         %LP format
@@ -1032,7 +979,11 @@ classdef FbaLPWriter
         function [compartmentIDs, compartmentNames, ...
                 substrateLongIDs, substrateIDs, substrateNames, ...
                 reactionLongIDs, reactionIDs, reactionNames, reversible] = ...
-                calcIDs(sim)
+                calcIDs(sim, formatSubstrateIdsForSbml)
+            if nargin < 2
+                formatSubstrateIdsForSbml = false;
+            end
+                
             p = sim.process('Metabolism');
             
             %% compartments
@@ -1178,11 +1129,23 @@ classdef FbaLPWriter
             assertIn(max(cellfun(@length, reactionIDs)), [0 8]);
             
             %% substrates
-            substrateLongIDs(~cellfun(@isempty, substrateCompartmentIDs)) = ...
-                cellfun(@(x,y) [x '_' y], ...
-                substrateLongIDs(~cellfun(@isempty, substrateCompartmentIDs)), ...
-                substrateCompartmentIDs(~cellfun(@isempty, substrateCompartmentIDs)), ...
-                'UniformOutput', false);
+            if formatSubstrateIdsForSbml
+                substrateLongIDs(~cellfun(@isempty, substrateCompartmentIDs)) = ...
+                    cellfun(@(x,y) [x '[' y ']'], ...
+                    substrateLongIDs(~cellfun(@isempty, substrateCompartmentIDs)), ...
+                    substrateCompartmentIDs(~cellfun(@isempty, substrateCompartmentIDs)), ...
+                    'UniformOutput', false);
+                substrateLongIDs(cellfun(@isempty, substrateCompartmentIDs)) = ...
+                    cellfun(@(x) [x '[none]'], ...
+                    substrateLongIDs(cellfun(@isempty, substrateCompartmentIDs)), ...
+                    'UniformOutput', false);
+            else
+                substrateLongIDs(~cellfun(@isempty, substrateCompartmentIDs)) = ...
+                    cellfun(@(x,y) [x '_' y], ...
+                    substrateLongIDs(~cellfun(@isempty, substrateCompartmentIDs)), ...
+                    substrateCompartmentIDs(~cellfun(@isempty, substrateCompartmentIDs)), ...
+                    'UniformOutput', false);
+            end
             substrateIDs = cellfun(@(x,y) [x y], substrateIDs, substrateCompartmentIDs, 'UniformOutput', false);
         end
     end
