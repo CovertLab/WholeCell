@@ -5,7 +5,6 @@ function config = getConfig()
 % Affilitation: Covert Lab, Department of Bioengineering, Stanford University
 % Last updated: 9/21/2010
 
-%% knowledgebase
 config.hostName = 'covertlab.stanford.edu';
 config.schema   = 'wholecell';
 config.userName = 'wholecell';
@@ -13,3 +12,5 @@ config.password = 'wholecell';
 config.outputPath = 'z:\projects\WholeCell\simulation\output\runSimulation';
 config.s3cmdPath = '/usr/bin';
 config.bitmillBashPath = '/home/jkarr/bitmill-bash';
+config.httpProxy = '';
+config.httpsProxy = '';

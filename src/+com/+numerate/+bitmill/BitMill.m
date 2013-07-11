@@ -194,12 +194,36 @@ classdef BitMill
     methods (Static = true)
         function [result, status, errMsg] = execCmd(cmd)
             if ispc
+                config = getConfig();                
+                if ~isempty(config.httpProxy)
+                    cmd = sprintf('export http_proxy=%s; %s', config.httpProxy, cmd);
+                end
+                if ~isempty(config.httpsProxy)
+                    cmd = sprintf('export https_proxy=%s; %s', config.httpsProxy, cmd);
+                end
+                
                 cmd = sprintf('bash.exe --login -c "%s"', strrep(cmd, '"', '\"'));
             elseif isunix && ~ismac
                 [~, msg] = system('echo $BASH_VERSION');
                 if ~isempty(msg)
+                    config = getConfig();
+                    if ~isempty(config.httpProxy)
+                        cmd = sprintf('export http_proxy=%s; %s', config.httpProxy, cmd);
+                    end
+                    if ~isempty(config.httpsProxy)
+                        cmd = sprintf('export https_proxy=%s; %s', config.httpsProxy, cmd);
+                    end
+                    
                     cmd = sprintf('export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu; %s', cmd);
                 else
+                    config = getConfig();
+                    if ~isempty(config.httpProxy)
+                        cmd = sprintf('setenv http_proxy %s; %s', config.httpProxy, cmd);
+                    end
+                    if ~isempty(config.httpsProxy)
+                        cmd = sprintf('setenv https_proxy %s; %s', config.httpsProxy, cmd);
+                    end
+                    
                     cmd = sprintf('set LD_LIBRARY_PATH = (/lib/x86_64-linux-gnu); %s', cmd);
                 end
             end

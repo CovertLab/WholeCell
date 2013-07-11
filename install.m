@@ -26,15 +26,7 @@ else
 end
 
 %% set server, s3cmd, bitmill-bash configurations
-reply = ' ';
-while ~(isequal(upper(reply), 'Y') || isequal(upper(reply), 'N') || isempty(reply))
-    reply = input('Would you like to setup your server configuration? Y/N [N]: ', 's');
-end
-if isequal(upper(reply), 'N') || isempty(reply)
-    return;
-end
-
-%prompt user
+%KB
 while true
     setupKb = upper(input('Would you like to setup a connection to the knowledge base [Y/N]: ', 's'));
     if strcmp(setupKb, 'Y') || strcmp(setupKb, 'N')
@@ -54,8 +46,25 @@ else
     password = 'wholecell';
 end
 
+%s3cmd, bitmill
 s3cmdPath = input('Enter path to parent of s3cmd (e.g. /usr/bin): ', 's');
 bitmillBashPath = input('Enter path to bitmill-bash (e.g. /home/<user_name>/bitmill-bash): ', 's');
+
+%proxy
+while true
+    setupProxy = upper(input('Would you like to setup a proxy connection [Y/N]: ', 's'));
+    if strcmp(setupProxy, 'Y') || strcmp(setupProxy, 'N')
+        break;
+    end
+end
+
+if strcmp(setupProxy, 'Y')
+    httpProxy = input('Enter http proxy url (e.g. http://proxy.tchpc.tcd.ie:8080): ', 's');
+    httpsProxy = input('Enter https proxy url (e.g. http://proxy.tchpc.tcd.ie:8080): ', 's');
+else
+    httpProxy = '';
+    httpsProxy = '';
+end
 
 %edit knowledge base configuration
 fid = fopen('getConfig.m', 'w');
@@ -66,7 +75,6 @@ fprintf(fid, '%% Author: Jonathan Karr, jkarr@stanford.edu\n');
 fprintf(fid, '%% Affilitation: Covert Lab, Department of Bioengineering, Stanford University\n');
 fprintf(fid, '%% Last updated: 9/21/2010\n');
 fprintf(fid, '\n');
-fprintf(fid, '%% knowledgebase\n');
 fprintf(fid, 'config.hostName = ''%s'';\n', strrep(hostName, '''', ''''''));
 fprintf(fid, 'config.schema   = ''%s'';\n', strrep(schema, '''', ''''''));
 fprintf(fid, 'config.userName = ''%s'';\n', strrep(userName, '''', ''''''));
@@ -74,6 +82,8 @@ fprintf(fid, 'config.password = ''%s'';\n', strrep(password, '''', ''''''));
 fprintf(fid, 'config.outputPath = ''%s'';\n', strrep(outputPath, '''', ''''''));
 fprintf(fid, 'config.s3cmdPath = ''%s'';\n', strrep(s3cmdPath, '''', ''''''));
 fprintf(fid, 'config.bitmillBashPath = ''%s'';\n', strrep(bitmillBashPath, '''', ''''''));
+fprintf(fid, 'config.httpProxy = ''%s'';\n', strrep(httpProxy, '''', ''''''));
+fprintf(fid, 'config.httpsProxy = ''%s'';\n', strrep(httpsProxy, '''', ''''''));
 fclose(fid);
 
 %% create output folders
