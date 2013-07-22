@@ -275,9 +275,7 @@ classdef DreamScoring
         
         %Create feature vector from predicted high-throughput data
         function predVec = getPredictionVector(predStruct)
-            sim = edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil.load();
-            time = sim.state('Time');
-            cellCycleLength = time.cellCycleLength;
+            maxSimLength = size(predStruct.singleCell.growth, 2);
             
             predVec = struct('mean', [], 'std', []);
             predVec.mean = [
@@ -285,9 +283,9 @@ classdef DreamScoring
                 mean(nanmean(predStruct.singleCell.mass, 2), 1)
                 mean(nanmean(predStruct.singleCell.volume, 2), 1)
                 
-                mean(min(cellCycleLength, predStruct.singleCell.repInitTime))
-                mean(min(cellCycleLength, predStruct.singleCell.repTermTime))
-                mean(min(cellCycleLength, predStruct.singleCell.cellCycleLen))
+                mean(min(maxSimLength, predStruct.singleCell.repInitTime))
+                mean(min(maxSimLength, predStruct.singleCell.repTermTime))
+                mean(min(maxSimLength, predStruct.singleCell.cellCycleLen))
                 
                 predStruct.metConcs.mean
                 predStruct.dnaSeq.mean
@@ -302,9 +300,9 @@ classdef DreamScoring
                 sqrt(mean(nanvar(predStruct.singleCell.mass, 1, 2)))
                 sqrt(mean(nanvar(predStruct.singleCell.volume, 1, 2)))
                 
-                std(min(cellCycleLength, predStruct.singleCell.repInitTime))
-                std(min(cellCycleLength, predStruct.singleCell.repTermTime))
-                std(min(cellCycleLength, predStruct.singleCell.cellCycleLen))
+                std(min(maxSimLength, predStruct.singleCell.repInitTime))
+                std(min(maxSimLength, predStruct.singleCell.repTermTime))
+                std(min(maxSimLength, predStruct.singleCell.cellCycleLen))
                 
                 predStruct.metConcs.std
                 predStruct.dnaSeq.std
