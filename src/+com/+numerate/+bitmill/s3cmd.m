@@ -21,13 +21,13 @@ classdef s3cmd
             import com.numerate.bitmill.s3cmd;
             [result, status, errMsg] = s3cmd.execCmd('ls');
             if status == 0
-                result = result(:, 1:end-1);
+                result = strsplit(sprintf('\n'), result(:, 1:end-1));
                 
-                nBuckets = size(result, 1);
+                nBuckets = numel(result);
                 buckets = repmat(struct('url', [], 'timestamp', []), nBuckets, 1);
                 for i = 1:nBuckets
-                    buckets(i).url = result(19:find(result ~= ' ', 1, 'last'));
-                    buckets(i).timestamp = datenum(result(i, 1:16));
+                    buckets(i).url = result{i}(19:find(result{i} ~= ' ', 1, 'last'));
+                    buckets(i).timestamp = datenum(result{i}(1:16));
                 end
             else
                 buckets = [];
@@ -64,13 +64,17 @@ classdef s3cmd
                 result = strsplit(sprintf('\n'), result);
                 
                 nFiles = numel(result) - 1;
-                contents = repmat(struct('url', [], 'timestamp', [], 'size', []), nFiles, 1);
+                contents = repmat(struct('url', [], 'timestamp', [], 'size', [], 'isdir', false), nFiles, 1);
                 for i = 1:nFiles
                     tmp = strsplit(' ', result{i}(18:end));
                     tmp = tmp(~cellfun(@isempty, tmp));
-                    contents(i).url = tmp{2};
-                    contents(i).size = str2double(tmp{1});
-                    contents(i).timestamp = datenum(result{i}(1:16));
+                   
+                    contents(i).url = tmp{2};                    
+                    contents(i).isdir = all(result{i}(1:16) == ' ');
+                    if ~contents(i).isdir
+                        contents(i).size = str2double(tmp{1});
+                        contents(i).timestamp = datenum(result{i}(1:16));
+                    end
                 end
             else
                 contents = [];
