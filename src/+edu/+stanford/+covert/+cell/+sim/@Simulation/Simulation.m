@@ -448,7 +448,7 @@ classdef Simulation < handle
             
             %set half lives
             ids = fieldnames(value);
-            [tfs, idxs] = ismember(ids, rna.wholeCellModelIDs(rna.matureIndexs));
+            [tfs, idxs] = ismember(ids, rna.wholeCellModelIDs(rna.nascentIndexs));
             if ~all(tfs)
                 throw(MException('Simulation:error', 'Cannot set binding probabities of undefined RNA:\n- %s', ...
                     strjoin(sprintf('\n- '), ids{~tfs})));
