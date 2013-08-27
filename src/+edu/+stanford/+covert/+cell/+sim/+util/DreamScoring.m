@@ -204,7 +204,7 @@ classdef DreamScoring
     end
     
     %helper methods
-    methods (Static = true, Access = protected)       
+    methods (Static = true)       
         %Get struct of parameter values
         function parameterVals = loadParameterVals(parameterVals, parameterValsPath)
             import edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil;

@@ -390,6 +390,32 @@ classdef DreamCompetitionTest < TestCase
             assertEqual(0, dists.prediction);
         end
         
+        function test_calcAvgSumSquaredLogRatioReproducible(~)
+            import edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil;
+            import edu.stanford.covert.cell.sim.util.DreamScoring;
+            
+            sim = CachedSimulationObjectUtil.load();
+            refParameterVals = sim.getAllParameters();
+            
+            met = sim.process('Metabolism');
+            rxnId = met.reactionWholeCellModelIDs{1};
+            kinetics.(rxnId).for = 1;
+            sim.applyMetabolicReactionKinetics(kinetics);
+            sim.applyRnaHalfLives(struct('TU_001', 1));
+            sim.applyRnaPolTuBindingProbs(struct('TU_290', 1e-3));
+            paramVals = sim.getAllParameters();
+            
+            distsA = DreamScoring.calcAvgSumSquaredLogRatio(...
+                DreamScoring.getParameterVector(paramVals), ...
+                DreamScoring.getParameterVector(refParameterVals));
+            
+            distsB = DreamScoring.calcAvgSumSquaredLogRatio(...
+                DreamScoring.getParameterVector(paramVals), ...
+                DreamScoring.getParameterVector(refParameterVals));
+            
+            assertEqual(distsA, distsB)
+        end
+        
         function test_calcParameterAndPredictionScoring(~)
             refParameterValsPath = 'output/1_1.parameters.mat';
             refAvgValsPath = 'output/1_1.predictions.mat';
