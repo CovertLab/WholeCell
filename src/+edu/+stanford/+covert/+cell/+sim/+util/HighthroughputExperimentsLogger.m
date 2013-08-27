@@ -426,7 +426,7 @@ classdef HighthroughputExperimentsLogger < edu.stanford.covert.cell.sim.util.Log
             
             %% average over time
             %calculate means and variances
-            nTime = numel(this.time);
+            nTime = find(this.time, 1, 'last');
             
             this.metConcs.mean  = 1 / nTime * this.metConcs.sum;
             this.dnaSeq.mean    = 1 / nTime * this.dnaSeq.sum;
