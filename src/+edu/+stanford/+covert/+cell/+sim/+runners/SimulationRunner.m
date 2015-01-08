@@ -275,12 +275,14 @@ classdef SimulationRunner < handle
             ic = this.initialConditions;
             
             %load perturbations
-            if ~isempty(this.outDir) && exist([this.outDir filesep 'conditions.xml'], 'file')
-                data = ConditionSet.parseConditionSet(sim, [this.outDir filesep 'conditions.xml']);
-                data.metadata.knowledgeBaseWID = knowledgeBaseWID;
-                sim.applyOptions(data.options);
-                sim.applyOptions(data.perturbations);
-                sim.applyParameters(data.parameters);
+            if ~isempty(this.outDir)
+                if exist([this.outDir filesep 'conditions.xml'], 'file')
+                    data = ConditionSet.parseConditionSet(sim, [this.outDir filesep 'conditions.xml']);
+                    data.metadata.knowledgeBaseWID = knowledgeBaseWID;
+                    sim.applyOptions(data.options);
+                    sim.applyOptions(data.perturbations);
+                    sim.applyParameters(data.parameters);
+                end
                 summaryLogger.setOptions(struct('verbosity', sim.verbosity, 'outputDirectory', this.outDir));
             end
             
