@@ -13,6 +13,7 @@ classdef FbaLPWriter
             
             %SBML-COBRA
             p.formulateFBA([], [], false);
+            FbaLPWriter.write_cobra_matlab(sim, [dirName filesep 'metabolism.full.mmol-gDCW-h.sbml'], 'mmol/gDCW/h');
             FbaLPWriter.write_sbml(sim, [dirName filesep 'metabolism.full.mmol-gDCW-h.sbml'], 'mmol/gDCW/h');
             
             %LP
@@ -49,6 +50,45 @@ classdef FbaLPWriter
             %parse unit option
             %growth (molecules/cell/s) = growth (mmol/gDCW/h) * biomass scale / flux scale
             if nargin < 3
+                units = 'molecules/cell/s';
+            elseif ~ismember(units, {'mmol/gDCW/h', 'molecules/cell/s'})
+                throw(MException('FbaLPWriter:error', 'Invalid units'))
+            end
+                        
+            [model, compartmentIDs, compartmentNames] = FbaLPWriter.make_cobra_model(sim, units);
+            writeCbModel(model, 'sbml', fileName, compartmentIDs, compartmentNames);
+            movefile([fileName '.xml'], fileName);
+        end
+
+        %MATLAB struct format for use with COBRA toolbox
+        %- http://lpsolve.sourceforge.net/5.5/lp-format.htm
+        function write_cobra_matlab(sim, fileName, units)
+            import edu.stanford.covert.cell.sim.util.FbaLPWriter;
+            import edu.stanford.covert.util.ConstantUtil;
+
+            %growth (molecules/cell/s) = growth (mmol/gDCW/h) * biomass scale / flux scale
+            if nargin < 3
+                units = 'mmol/gDCW/h';
+            elseif ~ismember(units, {'mmol/gDCW/h', 'molecules/cell/s'})
+                throw(MException('FbaLPWriter:error', 'Invalid units'))
+            end
+
+            if ~strcmp(substr(fileName, -4, 4), '.mat')
+                fileName = [fileName '.mat'];
+            end
+            metabolism_full_mmol_gDCW_h = FbaLPWriter.make_cobra_model(sim, units);
+            save(fileName, 'metabolism_full_mmol_gDCW_h');
+        end
+        
+        %MATLAB struct format for use with COBRA toolbox
+        %- http://lpsolve.sourceforge.net/5.5/lp-format.htm
+        function [model, compartmentIDs, compartmentNames] = make_cobra_model(sim, units)
+            import edu.stanford.covert.cell.sim.util.FbaLPWriter;
+            import edu.stanford.covert.util.ConstantUtil;
+            
+            %parse unit option
+            %growth (molecules/cell/s) = growth (mmol/gDCW/h) * biomass scale / flux scale
+            if nargin < 2
                 units = 'molecules/cell/s';
             elseif ~ismember(units, {'mmol/gDCW/h', 'molecules/cell/s'})
                 throw(MException('FbaLPWriter:error', 'Invalid units'))
@@ -97,11 +137,8 @@ classdef FbaLPWriter
             model.metNames = substrateNames;
             model.grRules = grRules;
             model.genes = geneIDs;
-            
-            writeCbModel(model, 'sbml', fileName, compartmentIDs, compartmentNames);
-            movefile([fileName '.xml'], fileName);
         end
-        
+
         %LP format
         %- http://lpsolve.sourceforge.net/5.5/lp-format.htm
         function write_lpsolve_lp(sim, fileName, units)
